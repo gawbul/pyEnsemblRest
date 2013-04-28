@@ -1,1 +1,2 @@
 from ensemblrest import EnsemblRest
+from exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
