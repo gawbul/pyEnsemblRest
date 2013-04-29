@@ -159,7 +159,6 @@ ensembl_api_table = {
 		'url': '/vep/{{species}}/id/{{id}}/consequences',
 		'method': 'GET',
 	},
-
 }
 
 ensembl_http_status_codes = {
