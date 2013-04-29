@@ -23,7 +23,6 @@ import re
 import sys
 import requests
 import json
-from urlparse import parse_qsl
 
 from ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table
 
@@ -32,7 +31,14 @@ class EnsemblRest(object):
 	def __init__(self, server=None, proxies=None):
 		# set REST API server url
 		if not server == None:
-			ensembl_default_url = server
+			if server == "default":
+				self.base_url = ensembl_default_url
+			elif server == "genomes":
+				self.base_url = ensembl_genomes_url
+			else:
+				self.base_url = server
+		else:
+			self.base_url = ensembl_default_url
 
 		# setup requests session
 		self.client = requests.Session()
@@ -40,20 +46,20 @@ class EnsemblRest(object):
 								'User-Agent': 'pyEnsemblRest v' + __version__}
 		self.client.proxies = proxies
 
-        # register available funcs to allow listing name when debugging.
+        # register available functions to allow listing name when debugging
 		def regFunc(key):
 			return lambda **kwargs: self._constructFunc(key, **kwargs)
 
-		# iterate over ensembl_api_table keys and register methods
+		# iterate over ensembl_api_table keys and add key to class namespace
 		for key in ensembl_api_table.keys():
 			self.__dict__[key] = regFunc(key)
 
 	def _constructFunc(self, api_call, **kwargs):
 		""" Function constructor """
-		# Go through and replace any mustaches that are in our API url.
+		# Go through and replace any moustaches that are in the API url.
 		fn = ensembl_api_table[api_call]
 		url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}',
-						lambda m: "%s" % kwargs.get(m.group(1)), ensembl_default_url + fn['url'])
+						lambda m: "%s" % kwargs.get(m.group(1)), self.base_url + fn['url'])
 		content = self._request(url, method=fn['method'], params=kwargs)
 
 		return content
