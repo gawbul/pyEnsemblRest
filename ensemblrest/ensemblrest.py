@@ -65,8 +65,7 @@ class EnsemblRest(object):
 			raise Exception('Method must be either GET or POST')
 
 		params = params or {}
-		# requests doesn't like items that can't be converted to unicode,
-		# so let's be nice and do that for the user
+		# convert params.items to unicode to be nice to requests
 		for k, v in params.items():
 			if isinstance(v, (int, bool)):
 				params[k] = u'%s' % v
@@ -90,7 +89,7 @@ class EnsemblRest(object):
 		}
 		
 		# wrap the json loads in a try, and defer an error
-        # why? twitter will return invalid json with an error code in the headers
+        # why? EnsEMBL REST API will return invalid json with an error code in the headers
 		json_error = False
 		try:
 			try:
@@ -105,8 +104,7 @@ class EnsemblRest(object):
 		
 		if response.status_code > 304:
 			# If there is no error message, use a default.
-			error = content.get('error', 'An error occurred processing your request.')
-			error_message = error
+			error_message = content.get('error', 'An error occurred processing your request.')
 			self._last_call['api_error'] = error_message
 
 			ExceptionType = EnsemblRestError
@@ -118,7 +116,7 @@ class EnsemblRest(object):
 								error_code=response.status_code,
 								retry_after=response.headers.get('X-RateLimit-Remaining'))
 
-		# if we have a json error here, then it's not an official TwitterAPI error
+		# if we have a json error here, then it's not an official EnsEMBL REST API error
 		if json_error and not response.status_code in (200, 201, 202):
 			raise EnsemblRestError('Response was not valid JSON, unable to decode.')
 

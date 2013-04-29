@@ -6,7 +6,53 @@ ensembl_default_url = 'http://beta.rest.ensembl.org'
 ensembl_genomes_url = 'http://test.rest.ensemblgenomes.org'
 
 ensembl_api_table = {
-	# Assembly
+	# Comparative Genomics
+	'getGeneTreeById': {
+		'url': '/genetree/id/{{id}}',
+		'method': 'GET',
+	},
+	'getGeneTreeMemberById': {
+		'url': '/genetree/member/id/{{id}}',
+		'method': 'GET',
+	},
+	'getGeneTreeMemberBySymbol': {
+		'url': '/genetree/member/symbol/{{species}}/{{symbol}}',
+		'method': 'GET',
+	},
+	'getHomologyById': {
+		'url': '/homology/id/{{id}}',
+		'method': 'GET',
+	},
+	'getHomologyBySymbol': {
+		'url': '/homology/symbol/{{species}}/{{symbol}}',
+		'method': 'GET',
+	},
+
+	# Cross References
+	'getXrefsById': {
+		'url': '/xrefs/id/{{id}}',
+		'method': 'GET',
+	},
+	'getXrefsByName': {
+		'url': '/xrefs/name/{{species}}/{{name}}',
+		'method': 'GET',
+	},
+	'getXrefsBySymbol': {
+		'url': '/xrefs/symbol/{{species}}/{{symbol}}',
+		'method': 'GET',
+	},
+
+	# Features
+	'getFeatureById': {
+		'url': '/feature/id/{{id}}',
+		'method': 'GET',
+	},
+	'getFeatureByRegion': {
+		'url': '/feature/region/{{species}}/{{region}}',
+		'method': 'GET',
+	},
+
+	# Information
 	'getAssemblyInfo': {
 		'url': '/assembly/info/{{species}}',
 		'method': 'GET',
@@ -15,8 +61,6 @@ ensembl_api_table = {
 		'url': '/assembly/info/{{species}}/{{region_name}}',
 		'method': 'GET',
 	},
-
-	# Information
 	'getInfoComparas': {
 		'url': '/info/comparas',
 		'method': 'GET',
@@ -39,6 +83,80 @@ ensembl_api_table = {
 	},
 	'getInfoSpecies': {
 		'url': '/info/species',
+		'method': 'GET',
+	},
+
+	# Lookup
+	'getLookupById': {
+		'url': '/lookup/id/{{id}}',
+		'method': 'GET',
+	},
+
+	# Mapping
+	'getMapAssemblyOneToTwo': {
+		'url': '/map/{{species}}/{{asm_one}}/{{region}}/{{asm_two}}',
+		'method': 'GET',
+	},
+	'getMapCdnaToRegion': {
+		'url': '/map/cdna/{{id}}/{{region}}',
+		'method': 'GET',
+	},
+	'getMapCdsToRegion': {
+		'url': '/map/cds/{{id}}/{{region}}',
+		'method': 'GET',
+	},
+	'getMapTranslationToRegion': {
+		'url': '/map/translation/{{id}}/{{region}}',
+		'method': 'GET',
+	},
+
+	# Ontologies and Taxonomy
+	'getAncestorsById': {
+		'url': '/ontology/ancestors/{{id}}',
+		'method': 'GET',
+	},
+	'getAncestorsChartById': {
+		'url': '/ontology/ancestors/chart/{{id}}',
+		'method': 'GET',
+	},
+	'getDescendentsById': {
+		'url': '/ontology/descendents/{{id}}',
+		'method': 'GET',
+	},
+	'getOntologyById': {
+		'url': '/ontology/id/{{id}}',
+		'method': 'GET',
+	},
+	'getOntologyByName': {
+		'url': '/ontology/name/{{name}}',
+		'method': 'GET',
+	},
+	'getTaxonomyClassificationById': {
+		'url': '/taxonomy/classification/{{id}}',
+		'method': 'GET',
+	},
+	'getTaxonomyById': {
+		'url': '/taxonomy/id/{{id}}',
+		'method': 'GET',
+	},
+
+	# Sequences
+	'getSequenceById': {
+		'url': '/sequence/id/{{id}}',
+		'method': 'GET',
+	},
+	'getSequenceByRegion': {
+		'url': '/sequence/region/{{species}}/{{region}}',
+		'method': 'GET',
+	},
+
+	# Variation
+	'getVariantConsequencesByRegion': {
+		'url': '/vep/{{species}}/{{region}}/{{allele}}/consequences',
+		'method': 'GET',
+	},
+	'getVariantConsequencesById': {
+		'url': '/vep/{{species}}/id/{{id}}/consequences',
 		'method': 'GET',
 	},
 
