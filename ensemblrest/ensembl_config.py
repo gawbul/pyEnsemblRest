@@ -6,28 +6,38 @@ ensembl_default_url = 'http://beta.rest.ensembl.org'
 ensembl_genomes_url = 'http://test.rest.ensemblgenomes.org'
 
 ensembl_api_table = {
+	# Assembly
+	'getAssemblyInfo': {
+		'url': '/assembly/info/{{species}}',
+		'method': 'GET',
+	},
+	'getAssemblyInfoRegion': {
+		'url': '/assembly/info/{{species}}/{{region_name}}',
+		'method': 'GET',
+	},
+
 	# Information
-	'getComparaReleases': {
+	'getInfoComparas': {
 		'url': '/info/comparas',
 		'method': 'GET',
 	},
-	'getDataReleases': {
+	'getInfoData': {
 		'url': '/info/data',
 		'method': 'GET',
 	},
-	'doPing': {
+	'getInfoPing': {
 		'url': '/info/ping',
 		'method': 'GET',
 	},
-	'getRestVersion': {
+	'getInfoRest': {
 		'url': '/info/rest',
 		'method': 'GET',
 	},
-	'getEnsemblVersion': {
+	'getInfoSoftware': {
 		'url': '/info/software',
 		'method': 'GET',
 	},
-	'getSpeciesInfo': {
+	'getInfoSpecies': {
 		'url': '/info/species',
 		'method': 'GET',
 	},

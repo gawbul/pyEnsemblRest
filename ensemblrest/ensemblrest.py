@@ -31,9 +31,8 @@ class EnsemblRest(object):
 	""" The REST API object """
 	def __init__(self, server=None, proxies=None):
 		# set REST API server url
-		if server == None:
-			server = ensembl_default_url
-		self.server = server
+		if not server == None:
+			ensembl_default_url = server
 
 		# setup requests session
 		self.client = requests.Session()
@@ -106,11 +105,21 @@ class EnsemblRest(object):
 		
 		if response.status_code > 304:
 			# If there is no error message, use a default.
-			errors = content.get('errors', [{'message': 'An error occurred processing your request.'}])
-			error_message = errors[0]['message']
+			error = content.get('error', 'An error occurred processing your request.')
+			error_message = error
 			self._last_call['api_error'] = error_message
 
-		return content
+			ExceptionType = EnsemblRestError
+			if response.status_code == 429:
+				# EnsEMBL REST API always returns 429 when rate limit is exceeded
+				ExceptionType = EnsemblRestRateLimitError
 
-if __name__ == "__main__":
-    server = get_default_url()
+			raise ExceptionType(error_message,
+								error_code=response.status_code,
+								retry_after=response.headers.get('X-RateLimit-Remaining'))
+
+		# if we have a json error here, then it's not an official TwitterAPI error
+		if json_error and not response.status_code in (200, 201, 202):
+			raise EnsemblRestError('Response was not valid JSON, unable to decode.')
+
+		return content
