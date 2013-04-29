@@ -7,8 +7,24 @@ ensembl_genomes_url = 'http://test.rest.ensemblgenomes.org'
 
 ensembl_api_table = {
 	# Information
+	'getComparaReleases': {
+		'url': '/info/comparas',
+		'method': 'GET',
+	},
+	'getDataReleases': {
+		'url': '/info/data',
+		'method': 'GET',
+	},
+	'doPing': {
+		'url': '/info/ping',
+		'method': 'GET',
+	},
 	'getRestVersion': {
-		'url': '/info/rest?',
+		'url': '/info/rest',
+		'method': 'GET',
+	},
+	'getEnsemblVersion': {
+		'url': '/info/software',
 		'method': 'GET',
 	},
 	'getSpeciesInfo': {

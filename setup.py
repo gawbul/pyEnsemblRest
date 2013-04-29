@@ -32,6 +32,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
         'Topic :: Internet',
-        'Topic :: Database'
     ]
 )
