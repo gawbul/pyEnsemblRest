@@ -5,7 +5,7 @@
 # import required modules
 from ensemblrest import EnsemblRest
 from time import sleep
-import unittests
+import unittest
 
 # setup new EnsemblRest object
 ensemblrest = EnsemblRest()
