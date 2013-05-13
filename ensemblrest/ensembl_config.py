@@ -13,12 +13,12 @@ ensembl_api_table = {
 		'content_type': 'text/x-nh'
 	},
 	'getGeneTreeByMemberId': {
-		'url': '/genetree/member/id/{{id}}?content-type=text/x-nh',
+		'url': '/genetree/member/id/{{id}}',
 		'method': 'GET',
 		'content_type': 'text/x-phyloxml+xml'
 	},
 	'getGeneTreeByMemberSymbol': {
-		'url': '/genetree/member/symbol/{{species}}/{{symbol}}?content-type=text/x-nh',
+		'url': '/genetree/member/symbol/{{species}}/{{symbol}}',
 		'method': 'GET',
 		'content_type': 'text/x-phyloxml+xml'
 	},
