@@ -25,11 +25,6 @@ for testfile in testfiles:
 	test_fh_map[filename] = testfile_fh.read().rstrip('\n')
 	testfile_fh.close()
 
-"""
-	ToDo: Currently failing on getGeneTreeByMemberId, getGeneTreeByMemberSymbol and getTaxonomyById
-	due to differing order of nodes in returned data.
-"""
-
 class TestEnsemblRest(unittest.TestCase):
 	def test_comparative_genomics(self):
 		# Comparative Genomics
