@@ -14,7 +14,7 @@ __author__ = "Steve Moss"
 __copyright__ = "Copyright 2013, Steve Moss"
 __credits__ = ["Steve Moss"]
 __license__ = "GPL"
-__version__ = "0.1.1-dev"
+__version__ = "0.1.1b"
 __maintainer__ = "Steve Moss"
 __email__ = "gawbul@gmail.com"
 __status__ = "beta"
@@ -24,7 +24,8 @@ import sys
 import requests
 import json
 
-from ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table
+from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table
+from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
 
 class EnsemblRest(object):
 	""" The REST API object """
@@ -42,8 +43,7 @@ class EnsemblRest(object):
 
 		# setup requests session
 		self.client = requests.Session()
-		self.client.headers = {'Content-Type': 'application/json',
-								'User-Agent': 'pyEnsemblRest v' + __version__}
+		self.client.headers = {'User-Agent': 'pyEnsemblRest v' + __version__}
 		self.client.proxies = proxies
 
         # register available functions to allow listing name when debugging
@@ -60,15 +60,20 @@ class EnsemblRest(object):
 		fn = ensembl_api_table[api_call]
 		url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}',
 						lambda m: "%s" % kwargs.get(m.group(1)), self.base_url + fn['url'])
-		content = self._request(url, method=fn['method'], params=kwargs)
+		content = self._request(url, method=fn['method'], content_type=fn['content_type'], params=kwargs)
 
 		return content
 
-	def _request(self, url, method='GET', params=None, files=None, api_call=None):
+	def _request(self, url, method='GET', content_type='application/json', params=None, files=None, api_call=None):
 		""" Internal response generator, no sense in repeating the same code twice, right? ;) """
 		method = method.lower()
 		if not method in ('get', 'post'):
 			raise Exception('Method must be either GET or POST')
+
+		# set content type
+		if not content_type:
+			raise Exception('Content-Type must be provided')
+		self.client.headers['Content-Type'] = content_type
 
 		params = params or {}
 		# convert params.items to unicode to be nice to requests
@@ -97,16 +102,17 @@ class EnsemblRest(object):
 		# wrap the json loads in a try, and defer an error
         # why? EnsEMBL REST API will return invalid json with an error code in the headers
 		json_error = False
-		try:
+		if content_type == 'application/json':
 			try:
-				# try to get json
-				content = content.json()
-			except AttributeError:
-				# if unicode detected
-				content = json.loads(content)
-		except ValueError:
-			json_error = True
-			content = {}
+				try:
+					# try to get json
+					content = content.json()
+				except AttributeError:
+					# if unicode detected
+					content = json.loads(content)
+			except ValueError:
+				json_error = True
+				content = {}
 		
 		if response.status_code > 304:
 			# If there is no error message, use a default.
@@ -120,7 +126,10 @@ class EnsemblRest(object):
 
 			raise ExceptionType(error_message,
 								error_code=response.status_code,
-								retry_after=response.headers.get('X-RateLimit-Remaining'))
+								rate_reset=response.headers.get('X-RateLimit-Reset'),
+								rate_limit=response.headers.get('X-RateLimit-Limit'),
+								rate_remaining=response.headers.get('X-RateLimit-Remaining')
+								)
 
 		# if we have a json error here, then it's not an official EnsEMBL REST API error
 		if json_error and not response.status_code in (200, 201, 202):
