@@ -33,6 +33,12 @@ You may also provide proxy server settings in the form of a dict, as follows:
 	from ensemblrest import EnsemblRest
 	ensemblrest = EnsemblRest(proxies={'http':'proxy.addres.com:3128', 'https':'proxy.address.com:3128'}) # setup rest object to point to localhost server
 
+You should also sleep for a second between every 3 requests (with bursts of 6 requests allowed periodically) using the following syntax:
+::
+
+	from time import sleep
+	sleep(1) # sleep for a second so we don't get rate-limited
+
 To access the *Comparative Genomics* endpoints you can use the following methods:
 ::
 
@@ -52,8 +58,8 @@ To access the *Cross References* endpoints you can use the following methods:
 To access the *Features* endpoints you can use the following methods:
 ::
 
-	print ensemblrest.getFeatureById(id='ENSG00000157764')
-	print ensemblrest.getFeatureByRegion(species='human', region='7:140424943-140624564')
+	print ensemblrest.getFeatureById(id='ENSG00000157764', feature='gene')
+	print ensemblrest.getFeatureByRegion(species='human', region='7:140424943..140624564', feature='gene')
 
 To access the *Information* endpoints you can use the following methods:
 ::
@@ -70,12 +76,12 @@ To access the *Information* endpoints you can use the following methods:
 To access the *Lookup* endpoints you can use the following methods:
 ::
 
-	print ensemblrest.getLookupyId(id='ENSG00000157764')
+	print ensemblrest.getLookupById(id='ENSG00000157764')
 
 To access the *Mapping* endpoints you can use the following methods:
 ::
 
-	print ensemblrest.getMapAssemblyOneToTwo(asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')
+	print ensemblrest.getMapAssemblyOneToTwo(species='human', asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')
 	print ensemblrest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')
 	print ensemblrest.getMapCdsToRegion(id='ENST00000288602', region='1..1000')
 	print ensemblrest.getMapTranslationToRegion(id='ENSP00000288602', region='100..300')
@@ -86,7 +92,7 @@ To access the *Ontologies and Taxonomy* endpoints you can use the following meth
 	print ensemblrest.getAncestorsById(id='GO:0005667')
 	print ensemblrest.getAncestorsChartById(id='GO:0005667')
 	print ensemblrest.getDescendentsById(id='GO:0005667')
-	print ensemblrest.getOntologyById(id='')
+	print ensemblrest.getOntologyById(id='GO:0005667')
 	print ensemblrest.getOntologyByName(name='transcription factor complex')
 	print ensemblrest.getTaxonomyClassificationById(id='9606')
 	print ensemblrest.getTaxonomyById(id='9606')
