@@ -11,7 +11,7 @@
 """
 
 __author__ = "Steve Moss"
-__version__ = "0.1.1b"
+__version__ = "0.1.7b"
 
 from .ensemblrest import EnsemblRest
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
