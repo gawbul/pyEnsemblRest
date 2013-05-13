@@ -37,161 +37,161 @@ ensembl_api_table = {
 	'getXrefsById': {
 		'url': '/xrefs/id/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getXrefsByName': {
 		'url': '/xrefs/name/{{species}}/{{name}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getXrefsBySymbol': {
 		'url': '/xrefs/symbol/{{species}}/{{symbol}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 
 	# Features
 	'getFeatureById': {
-		'url': '/feature/id/{{id}}',
+		'url': '/feature/id/{{id}}?feature={{feature}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getFeatureByRegion': {
-		'url': '/feature/region/{{species}}/{{region}}',
+		'url': '/feature/region/{{species}}/{{region}}?feature={{feature}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 
 	# Information
 	'getAssemblyInfo': {
 		'url': '/assembly/info/{{species}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getAssemblyInfoRegion': {
 		'url': '/assembly/info/{{species}}/{{region_name}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getInfoComparas': {
 		'url': '/info/comparas',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getInfoData': {
 		'url': '/info/data',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getInfoPing': {
 		'url': '/info/ping',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getInfoRest': {
 		'url': '/info/rest',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getInfoSoftware': {
 		'url': '/info/software',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getInfoSpecies': {
 		'url': '/info/species',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 
 	# Lookup
 	'getLookupById': {
 		'url': '/lookup/id/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 
 	# Mapping
 	'getMapAssemblyOneToTwo': {
 		'url': '/map/{{species}}/{{asm_one}}/{{region}}/{{asm_two}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getMapCdnaToRegion': {
 		'url': '/map/cdna/{{id}}/{{region}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getMapCdsToRegion': {
 		'url': '/map/cds/{{id}}/{{region}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getMapTranslationToRegion': {
 		'url': '/map/translation/{{id}}/{{region}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 
 	# Ontologies and Taxonomy
 	'getAncestorsById': {
 		'url': '/ontology/ancestors/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getAncestorsChartById': {
 		'url': '/ontology/ancestors/chart/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getDescendentsById': {
 		'url': '/ontology/descendents/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getOntologyById': {
 		'url': '/ontology/id/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getOntologyByName': {
 		'url': '/ontology/name/{{name}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getTaxonomyClassificationById': {
 		'url': '/taxonomy/classification/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getTaxonomyById': {
 		'url': '/taxonomy/id/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 
 	# Sequences
 	'getSequenceById': {
 		'url': '/sequence/id/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getSequenceByRegion': {
 		'url': '/sequence/region/{{species}}/{{region}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 
 	# Variation
 	'getVariantConsequencesByRegion': {
 		'url': '/vep/{{species}}/{{region}}/{{allele}}/consequences',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getVariantConsequencesById': {
 		'url': '/vep/{{species}}/id/{{id}}/consequences',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 }
 

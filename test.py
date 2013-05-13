@@ -25,9 +25,9 @@ print ensemblrest.getXrefsByName(species='human', name='BRCA2')
 print ensemblrest.getXrefsBySymbol(species='human', symbol='BRCA2')
 
 # Features
-print ensemblrest.getFeatureById(id='ENSG00000157764')
+print ensemblrest.getFeatureById(id='ENSG00000157764', feature='gene')
 sleep(1) # sleep for a second so we don't get rate-limited
-print ensemblrest.getFeatureByRegion(species='human', region='7:140424943..140624564')
+print ensemblrest.getFeatureByRegion(species='human', region='7:140424943..140624564', feature='gene')
 
 # Information
 print ensemblrest.getAssemblyInfo(species='human')
@@ -43,10 +43,10 @@ print ensemblrest.getInfoSpecies()
 sleep(1) # sleep for a second so we don't get rate-limited
 
 # Lookup
-print ensemblrest.getLookupyId(id='ENSG00000157764')
+print ensemblrest.getLookupById(id='ENSG00000157764')
 
 # Mapping
-print ensemblrest.getMapAssemblyOneToTwo(asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')
+print ensemblrest.getMapAssemblyOneToTwo(species='human', asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')
 print ensemblrest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')
 sleep(1) # sleep for a second so we don't get rate-limited
 print ensemblrest.getMapCdsToRegion(id='ENST00000288602', region='1..1000')
@@ -57,7 +57,7 @@ print ensemblrest.getAncestorsById(id='GO:0005667')
 sleep(1) # sleep for a second so we don't get rate-limited
 print ensemblrest.getAncestorsChartById(id='GO:0005667')
 print ensemblrest.getDescendentsById(id='GO:0005667')
-print ensemblrest.getOntologyById(id='')
+print ensemblrest.getOntologyById(id='GO:0005667')
 sleep(1) # sleep for a second so we don't get rate-limited
 print ensemblrest.getOntologyByName(name='transcription factor complex')
 print ensemblrest.getTaxonomyClassificationById(id='9606')
