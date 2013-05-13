@@ -11,11 +11,11 @@ ensembl_api_table = {
 		'url': '/genetree/id/{{id}}',
 		'method': 'GET',
 	},
-	'getGeneTreeMemberById': {
+	'getGeneTreeByMemberId': {
 		'url': '/genetree/member/id/{{id}}',
 		'method': 'GET',
 	},
-	'getGeneTreeMemberBySymbol': {
+	'getGeneTreeByMemberSymbol': {
 		'url': '/genetree/member/symbol/{{species}}/{{symbol}}',
 		'method': 'GET',
 	},

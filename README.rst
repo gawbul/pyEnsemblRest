@@ -21,13 +21,24 @@ To import an setup a new EnsemblRest object you should do the following:
 	from ensemblrest import EnsemblRest
 	ensemblrest = EnsemblRest()
 
+To use a custom EnsEMBL REST server you should setup the EnsemblRest object as follows:
+::
+
+	from ensemblrest import EnsemblRest
+	ensemblrest = EnsemblRest(server='localhost') # setup rest object to point to localhost server
+
+You may also provide proxy server settings in the form of a dict, as follows:
+::
+
+	from ensemblrest import EnsemblRest
+	ensemblrest = EnsemblRest(proxies={'http':'proxy.addres.com:3128', 'https':'proxy.address.com:3128'}) # setup rest object to point to localhost server
+
 To access the *Comparative Genomics* endpoints you can use the following methods:
 ::
 
 	print ensemblrest.getGeneTreeById(id='ENSGT00390000003602')
 	print ensemblrest.getGeneTreeByMemberId(id='ENSG00000157764')
 	print ensemblrest.getGeneTreeByMemberSymbol(species='human', symbol='BRCA2')
-	
 	print ensemblrest.getHomologyById(id='ENSG00000157764')
 	print ensemblrest.getHomologyBySymbol(species='human', symbol='BRCA2')
 
@@ -49,7 +60,6 @@ To access the *Information* endpoints you can use the following methods:
 
 	print ensemblrest.getAssemblyInfo(species='human')
 	print ensemblrest.getAssemblyInfoRegion(species='human', region_name='X')
-
 	print ensemblrest.getInfoComparas()
 	print ensemblrest.getInfoData()
 	print ensemblrest.getInfoPing()
@@ -65,8 +75,21 @@ To access the *Lookup* endpoints you can use the following methods:
 To access the *Mapping* endpoints you can use the following methods:
 ::
 
+	print ensemblrest.getMapAssemblyOneToTwo(asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')
+	print ensemblrest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')
+	print ensemblrest.getMapCdsToRegion(id='ENST00000288602', region='1..1000')
+	print ensemblrest.getMapTranslationToRegion(id='ENSP00000288602', region='100..300')
+
 To access the *Ontologies and Taxonomy* endpoints you can use the following methods:
 ::
+
+	print ensemblrest.getAncestorsById(id='GO:0005667')
+	print ensemblrest.getAncestorsChartById(id='GO:0005667')
+	print ensemblrest.getDescendentsById(id='GO:0005667')
+	print ensemblrest.getOntologyById(id='')
+	print ensemblrest.getOntologyByName(name='transcription factor complex')
+	print ensemblrest.getTaxonomyClassificationById(id='9606')
+	print ensemblrest.getTaxonomyById(id='9606')
 
 To access the *Sequences* endpoints you can use the following methods:
 ::
@@ -76,3 +99,6 @@ To access the *Sequences* endpoints you can use the following methods:
 
 To access the *Variation* endpoints you can use the following methods:
 ::
+
+	print ensemblrest.getVariantConsequencesByRegion(species='human', region='9:22125503-22125502:1', allele='C')
+	print ensemblrest.getVariantConsequencesById(species='human', id='COSM476')
