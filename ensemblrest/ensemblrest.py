@@ -14,10 +14,10 @@ __author__ = "Steve Moss"
 __copyright__ = "Copyright 2013, Steve Moss"
 __credits__ = ["Steve Moss"]
 __license__ = "GPL"
-__version__ = "0.0.1-dev"
+__version__ = "0.1.1-dev"
 __maintainer__ = "Steve Moss"
 __email__ = "gawbul@gmail.com"
-__status__ = "alpha"
+__status__ = "beta"
 
 import re
 import sys
