@@ -1,6 +1,6 @@
 # .travis.yml
 language:
-  python
+  - python
 python:
   - 2.7
 notifications:
