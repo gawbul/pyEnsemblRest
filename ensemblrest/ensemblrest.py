@@ -72,8 +72,9 @@ class EnsemblRest(object):
 		func = ensembl_api_table[api_call]
 		url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
 		resp = self.session.get(url, headers={"Content-Type": func['content_type']})
-
-		# parse status codes
+		
+		
+		# parse status codes
 		if resp.status_code > 304:
 			ExceptionType = EnsemblRestError
 			if resp.status_code == 429:

@@ -5,119 +5,106 @@
 # import required modules
 from ensemblrest import EnsemblRest
 from time import sleep
-import unittest
-import os, glob, sys
-import json
+import nose
+import glob, json, md5, os, sys
 
 # setup new EnsemblRest object
 ensemblrest = EnsemblRest()
 
-# get all test files and load each into test file handle dict
-test_fh_map = {}
-alltests_path = os.path.split(os.path.realpath(__file__))[0]
-testfiles = glob.glob(os.path.join(alltests_path, '*.*'))
-for testfile in testfiles:
-	testfile = os.path.split(testfile)[-1]
-	(filename, extension) = testfile.split('.')
-	if testfile == os.path.basename(__file__) or extension.startswith('py'):
-		pass
-	testfile_fh = open(os.path.join(alltests_path, testfile), 'r')
-	test_fh_map[filename] = testfile_fh.read().rstrip()
-	testfile_fh.close()
-
 class TestEnsemblRest(unittest.TestCase):
 	def test_archive(self):
-		self.assertEqual(ensemblrest.getArchiveById(id='ENSG00000157764'), test_fh_map['getarchivebyid'])
+		self.assertEqual(md5.new(ensemblrest.getArchiveById(id='ENSG00000157764')).hexdigest(), '7f34655ad100ad0650e4814d24c9091e')
 
 	def test_comparative_genomics(self):
 		# Comparative Genomics
-		self.assertEqual(str(ensemblrest.getGeneTreeById(id='ENSGT00390000003602')), test_fh_map['getgenetreebyid'])
-		self.assertEqual(str(ensemblrest.getGeneTreeByMemberId(id='ENSG00000157764')), test_fh_map['getgenetreebymemberid'])
-		self.assertEqual(str(ensemblrest.getGeneTreeByMemberSymbol(species='human', symbol='BRCA2')), test_fh_map['getgenetreebymembersymbol'])
-		self.assertEqual(str(ensemblrest.getAlignmentBySpeciesRegion(species='human', region='2:106040000-106040050:1')), test_fh_map['gethomologybyid'])
-		self.assertEqual(str(ensemblrest.getHomologyById(id='ENSG00000157764')), test_fh_map['gethomologybyid'])
+		self.assertEqual(md5.new(ensemblrest.getGeneTreeById(id='ENSGT00390000003602')).hexdigest(), 'bbde0d491222726ac0f63846f99c0a6b')
+		self.assertEqual(md5.new(ensemblrest.getGeneTreeByMemberId(id='ENSG00000157764')).hexdigest(), 'f7b0667ffb52d39f702ab32a7a748a40')
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getHomologyBySymbol(species='human', symbol='BRCA2')), test_fh_map['gethomologybysymbol'])
+		self.assertEqual(md5.new(ensemblrest.getGeneTreeByMemberSymbol(species='human', symbol='BRCA2')).hexdigest(), '1f8b34d923def96e919d047107886584')
+		self.assertEqual(md5.new(ensemblrest.getAlignmentBySpeciesRegion(species='human', region='2:106040000-106040050:1')).hexdigest(), '09df11f8e63bfc65e4830288bc3adf85')
+		self.assertEqual(md5.new(ensemblrest.getHomologyById(id='ENSG00000157764')).hexdigest(), '3ed5e55d97ac91cd92a61f1f0e3920b0')
+		sleep(1) # sleep for a second so we don't get rate-limited
+		self.assertEqual(md5.new(ensemblrest.getHomologyBySymbol(species='human', symbol='BRCA2')).hexdigest(), 'eb0ad0a949e9e083fc05718590b57be0')
 
 """
 	def test_cross_references(self):
 		# Cross References
-		self.assertEqual(str(ensemblrest.getXrefsById(id='ENSG00000157764')), test_fh_map['getxrefsbyid'])
-		self.assertEqual(str(ensemblrest.getXrefsByName(species='human', name='BRCA2')), test_fh_map['getxrefsbyname'])
-		self.assertEqual(str(ensemblrest.getXrefsBySymbol(species='human', symbol='BRCA2')), test_fh_map['getxrefsbysymbol'])
+		self.assertEqual(md5.new(ensemblrest.getXrefsById(id='ENSG00000157764')).hexdigest(), '')
+		self.assertEqual(md5.new(ensemblrest.getXrefsByName(species='human', name='BRCA2')).hexdigest(), '')
+		self.assertEqual(md5.new(ensemblrest.getXrefsBySymbol(species='human', symbol='BRCA2')).hexdigest(), '')
 	
 	def test_information(self):
 		# Information
-		self.assertEqual(str(ensemblrest.getInfoAnalysis(species='human')), test_fh_map['getinfoanalysis'])
+		self.assertEqual(md5.new(ensemblrest.getInfoAnalysis(species='human')).hexdigest(), test_fh_map['getinfoanalysis'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getInfoAssembly(species='human')), test_fh_map['getinfoassembly'])
-		self.assertEqual(str(ensemblrest.getInfoAssemblyRegion(species='human', region_name='X')), test_fh_map['getinfoassemblyregion'])
-		self.assertEqual(str(ensemblrest.getInfoBiotypes(species='human')), test_fh_map['getinfobiotypes'])
-		self.assertEqual(str(ensemblrest.getInfoComparaMethods()), test_fh_map['getinfocomparamethods'])
-		self.assertEqual(str(ensemblrest.getInfoComparaSpeciesSets(methods='')), test_fh_map['getinfocomparaspeciessets'])
+		self.assertEqual(md5.new(ensemblrest.getInfoAssembly(species='human')).hexdigest(), test_fh_map['getinfoassembly'])
+		self.assertEqual(md5.new(ensemblrest.getInfoAssemblyRegion(species='human', region_name='X')).hexdigest(), test_fh_map['getinfoassemblyregion'])
+		self.assertEqual(md5.new(ensemblrest.getInfoBiotypes(species='human')), test_fh_map['getinfobiotypes'])
+		self.assertEqual(md5.new(ensemblrest.getInfoComparaMethods()), test_fh_map['getinfocomparamethods'])
+		self.assertEqual(md5.new(ensemblrest.getInfoComparaSpeciesSets(methods='')), test_fh_map['getinfocomparaspeciessets'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getInfoComparas()), test_fh_map['getinfocomparas'])
-		self.assertEqual(str(ensemblrest.getInfoData()), test_fh_map['getinfodata'])
-		self.assertEqual(str(ensemblrest.getInfoEgVersion()), test_fh_map['getinfoegversion'])
-		self.assertEqual(str(ensemblrest.getInfoExternalDbs(species='human')), test_fh_map['getinfoexternaldbs'])
-		self.assertEqual(str(ensemblrest.getInfoDivisions()), test_fh_map['getinfodivisions'])
+		self.assertEqual(md5.new(ensemblrest.getInfoComparas()), test_fh_map['getinfocomparas'])
+		self.assertEqual(md5.new(ensemblrest.getInfoData()), test_fh_map['getinfodata'])
+		self.assertEqual(md5.new(ensemblrest.getInfoEgVersion()), test_fh_map['getinfoegversion'])
+		self.assertEqual(md5.new(ensemblrest.getInfoExternalDbs(species='human')), test_fh_map['getinfoexternaldbs'])
+		self.assertEqual(md5.new(ensemblrest.getInfoDivisions()), test_fh_map['getinfodivisions'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getInfoGenomesByName(name='')), test_fh_map['getinfogenomesbyname'])
-		self.assertEqual(str(ensemblrest.getInfoGenomesByAccession(accession='')), test_fh_map['getinfogenomesbyaccession'])
-		self.assertEqual(str(ensemblrest.getInfoGenomesByAssembly(assembly='')), test_fh_map['getinfogenomesbyassembly'])
-		self.assertEqual(str(ensemblrest.getInfoGenomesByDivision(division='')), test_fh_map['getinfogenomesbydivision'])
-		self.assertEqual(str(ensemblrest.getInfoGenomesByTaxonomy(taxonomy='')), test_fh_map['getinfogenomesbytaxonomy'])
+		self.assertEqual(md5.new(ensemblrest.getInfoGenomesByName(name='')), test_fh_map['getinfogenomesbyname'])
+		self.assertEqual(md5.new(ensemblrest.getInfoGenomesByAccession(accession='')), test_fh_map['getinfogenomesbyaccession'])
+		self.assertEqual(md5.new(ensemblrest.getInfoGenomesByAssembly(assembly='')), test_fh_map['getinfogenomesbyassembly'])
+		self.assertEqual(md5.new(ensemblrest.getInfoGenomesByDivision(division='')), test_fh_map['getinfogenomesbydivision'])
+		self.assertEqual(md5.new(ensemblrest.getInfoGenomesByTaxonomy(taxonomy='')), test_fh_map['getinfogenomesbytaxonomy'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getInfoPing()), test_fh_map['getinfoping'])
-		self.assertEqual(str(ensemblrest.getInfoRest()), test_fh_map['getinforest'])
-		self.assertEqual(str(ensemblrest.getInfoSoftware()), test_fh_map['getinfosoftware'])
+		self.assertEqual(md5.new(ensemblrest.getInfoPing()), test_fh_map['getinfoping'])
+		self.assertEqual(md5.new(ensemblrest.getInfoRest()), test_fh_map['getinforest'])
+		self.assertEqual(md5.new(ensemblrest.getInfoSoftware()), test_fh_map['getinfosoftware'])
 		self.maxDiff = None
 		self.assertItemsEqual(json.dumps(ensemblrest.getInfoSpecies()), test_fh_map['getinfospecies']) # use len here due to changing order of returned dict
 
 	def test_lookup(self):
 		# Lookup
-		self.assertEqual(str(ensemblrest.getLookupById(id='ENSG00000157764')), test_fh_map['getlookupbyid'])
+		self.assertEqual(md5.new(ensemblrest.getLookupById(id='ENSG00000157764')), test_fh_map['getlookupbyid'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getLookupByGenomeName(name='')), test_fh_map['getlookupbygenomename'])
-		self.assertEqual(str(ensemblrest.getLookupBySpeciesSymbol(species='human', symbol='BRCA2')), test_fh_map['getlookupbyspeciessymbol'])
+		self.assertEqual(md5.new(ensemblrest.getLookupByGenomeName(name='')), test_fh_map['getlookupbygenomename'])
+		self.assertEqual(md5.new(ensemblrest.getLookupBySpeciesSymbol(species='human', symbol='BRCA2')), test_fh_map['getlookupbyspeciessymbol'])
 
 	def test_mapping(self):
 		# Mapping
-		self.assertEqual(str(ensemblrest.getMapAssemblyOneToTwo(species='human', asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')), test_fh_map['getmapassemblyonetotwo'])
-		self.assertEqual(str(ensemblrest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')), test_fh_map['getmapcdnatoregion'])
-		self.assertEqual(str(ensemblrest.getMapCdsToRegion(id='ENST00000288602', region='1..1000')), test_fh_map['getmapcdstoregion'])
+		self.assertEqual(md5.new(ensemblrest.getMapAssemblyOneToTwo(species='human', asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')), test_fh_map['getmapassemblyonetotwo'])
+		self.assertEqual(md5.new(ensemblrest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')), test_fh_map['getmapcdnatoregion'])
+		self.assertEqual(md5.new(ensemblrest.getMapCdsToRegion(id='ENST00000288602', region='1..1000')), test_fh_map['getmapcdstoregion'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getMapTranslationToRegion(id='ENSP00000288602', region='100..300')), test_fh_map['getmaptranslationtoregion'])
+		self.assertEqual(md5.new(ensemblrest.getMapTranslationToRegion(id='ENSP00000288602', region='100..300')), test_fh_map['getmaptranslationtoregion'])
 
 	def test_ontologies_and_taxonomy(self):
 		# Ontologies and Taxonomy
-		self.assertEqual(str(ensemblrest.getAncestorsById(id='GO:0005667')), test_fh_map['getancestorsbyid'])
-		self.assertEqual(str(ensemblrest.getAncestorsChartById(id='GO:0005667')), test_fh_map['getancestorschartbyid'])
-		self.assertEqual(str(ensemblrest.getDescendentsById(id='GO:0005667')), test_fh_map['getdescendentsbyid'])
-		self.assertEqual(str(ensemblrest.getOntologyById(id='GO:0005667')), test_fh_map['getontologybyid'])
+		self.assertEqual(md5.new(ensemblrest.getAncestorsById(id='GO:0005667')), test_fh_map['getancestorsbyid'])
+		self.assertEqual(md5.new(ensemblrest.getAncestorsChartById(id='GO:0005667')), test_fh_map['getancestorschartbyid'])
+		self.assertEqual(md5.new(ensemblrest.getDescendentsById(id='GO:0005667')), test_fh_map['getdescendentsbyid'])
+		self.assertEqual(md5.new(ensemblrest.getOntologyById(id='GO:0005667')), test_fh_map['getontologybyid'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getOntologyByName(name='transcription factor complex')), test_fh_map['getontologybyname'])
-		self.assertEqual(str(ensemblrest.getTaxonomyClassificationById(id='9606')), test_fh_map['gettaxonomyclassificationbyid'])
-		self.assertEqual(len(str(ensemblrest.getTaxonomyById(id='9606'))), len(test_fh_map['gettaxonomybyid']))
-		self.assertEqual(len(str(ensemblrest.getTaxonomyByName(name=''))), len(test_fh_map['gettaxonomybyname']))
+		self.assertEqual(md5.new(ensemblrest.getOntologyByName(name='transcription factor complex')), test_fh_map['getontologybyname'])
+		self.assertEqual(md5.new(ensemblrest.getTaxonomyClassificationById(id='9606')), test_fh_map['gettaxonomyclassificationbyid'])
+		self.assertEqual(md5.new(ensemblrest.getTaxonomyById(id='9606')), len(test_fh_map['gettaxonomybyid']))
+		self.assertEqual(md5.new(ensemblrest.getTaxonomyByName(name='')), len(test_fh_map['gettaxonomybyname']))
 
 	def test_overlap(self):
 		# Overlap
-		self.assertEqual(str(ensemblrest.getOverlapById(id='ENSG00000157764')), test_fh_map['getoverlapbyid'])
-		self.assertEqual(str(ensemblrest.getOverlapBySpeciesRegion(species='', region='')), test_fh_map['getoverlapbyspeciesregion'])
+		self.assertEqual(md5.new(ensemblrest.getOverlapById(id='ENSG00000157764')), test_fh_map['getoverlapbyid'])
+		self.assertEqual(md5.new(ensemblrest.getOverlapBySpeciesRegion(species='', region='')), test_fh_map['getoverlapbyspeciesregion'])
 		sleep(1) # sleep for a second so we don't get rate-limited
-		self.assertEqual(str(ensemblrest.getOverlapByTranslation(id='ENSG00000157764')), test_fh_map['getoverlapbytranslation'])
+		self.assertEqual(md5.new(ensemblrest.getOverlapByTranslation(id='ENSG00000157764')), test_fh_map['getoverlapbytranslation'])
 		
 	def test_sequences(self):
 		# Sequences
-		self.assertEqual(str(ensemblrest.getSequenceById(id='ENSG00000157764')), test_fh_map['getsequencebyid'])
-		self.assertEqual(str(ensemblrest.getSequenceByRegion(species='human', region='X:1000000..1000100')), test_fh_map['getsequencebyregion'])
+		self.assertEqual(md5.new(ensemblrest.getSequenceById(id='ENSG00000157764')), test_fh_map['getsequencebyid'])
+		self.assertEqual(md5.new(ensemblrest.getSequenceByRegion(species='human', region='X:1000000..1000100')), test_fh_map['getsequencebyregion'])
 
 	def test_variation(self):
 		# Variation
-		self.assertEqual(str(ensemblrest.getVariationBySpeciesId(species='human', id='')), test_fh_map['getvariationbyspeciesid'])
-		self.assertEqual(str(ensemblrest.getVariantConsequencesBySpeciesId(species='human', id='')), test_fh_map['getvariantconsequencesbyspeciesid'])
-		self.assertEqual(str(ensemblrest.getVariantConsequencesBySpeciesRegionAllele(species='human', region='9:22125503-22125502:1', allele='C')), test_fh_map['getvariantconsequencesbyspeciesregionallele'])
+		self.assertEqual(md5.new(ensemblrest.getVariationBySpeciesId(species='human', id='')), test_fh_map['getvariationbyspeciesid'])
+		self.assertEqual(md5.new(ensemblrest.getVariantConsequencesBySpeciesId(species='human', id='')), test_fh_map['getvariantconsequencesbyspeciesid'])
+		self.assertEqual(md5.new(ensemblrest.getVariantConsequencesBySpeciesRegionAllele(species='human', region='9:22125503-22125502:1', allele='C')), test_fh_map['getvariantconsequencesbyspeciesregionallele'])
 """
 if __name__ == '__main__':
 	unittest.main()
