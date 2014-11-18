@@ -8,16 +8,12 @@
 """
 
 # import system modules
-import json
-import os
 import re
 import requests
-import sys
 
 # import ensemblrest modules
 from . import __version__
-from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, \
-							ensembl_http_status_codes, ensembl_user_agent, ensembl_content_type
+from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensembl_http_status_codes, ensembl_user_agent, ensembl_content_type
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
 
 # EnsEMBL REST API object
@@ -73,15 +69,13 @@ class EnsemblRest(object):
 		url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
 		resp = self.session.get(url, headers={"Content-Type": func['content_type']})
 		
-		
 		# parse status codes
 		if resp.status_code > 304:
 			ExceptionType = EnsemblRestError
 			if resp.status_code == 429:
 				ExceptionType = EnsemblRestRateLimitError
 
-			raise ExceptionType(ensembl_http_status_codes[resp.status_code][1],
-								error_code=resp.status_code)
+			raise ExceptionType(ensembl_http_status_codes[resp.status_code][1], error_code=resp.status_code)
 
 		content = resp.text
 		return content
