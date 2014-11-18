@@ -1,0 +1,14 @@
+# .travis.yml
+language:
+  - python
+python:
+  - 2.7
+notifications:
+  - email: false
+install:
+  - "pip install ."
+  - "pip install -r requirements.txt"
+script:
+  - nosetests --with-coverage --cover-package=pyensemblrest tests/alltests.py
+after_success:
+  - coveralls

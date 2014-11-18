@@ -2,10 +2,22 @@
 	Configuration information for the EnsEMBL REST API
 """
 
-ensembl_default_url = 'http://beta.rest.ensembl.org'
-ensembl_genomes_url = 'http://test.rest.ensemblgenomes.org'
+# import pyensemblrest version
+from . import __version__
 
+# set urls
+ensembl_default_url = 'http://rest.ensembl.org'
+ensembl_genomes_url = 'http://rest.ensemblgenomes.org'
+
+# api lookup table
 ensembl_api_table = {
+	# Archive
+	'getArchiveById': {
+		'url': '/archive/id/{{id}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},	
+
 	# Comparative Genomics
 	'getGeneTreeById': {
 		'url': '/genetree/id/{{id}}',
@@ -21,6 +33,11 @@ ensembl_api_table = {
 		'url': '/genetree/member/symbol/{{species}}/{{symbol}}',
 		'method': 'GET',
 		'content_type': 'text/x-phyloxml+xml'
+	},
+	'getAlignmentBySpeciesRegion': {
+		'url': '/alignment/region/{{species}}/{{region}}',
+		'method': 'GET',
+		'content_type': 'application/json'
 	},
 	'getHomologyById': {
 		'url': '/homology/id/{{id}}',
@@ -50,28 +67,36 @@ ensembl_api_table = {
 		'content_type': 'application/json'
 	},
 
-	# Features
-	'getFeatureById': {
-		'url': '/feature/id/{{id}}?feature={{feature}}',
-		'method': 'GET',
-		'content_type': 'application/json'
-	},
-	'getFeatureByRegion': {
-		'url': '/feature/region/{{species}}/{{region}}?feature={{feature}}',
-		'method': 'GET',
-		'content_type': 'application/json'
-	},
-
 	# Information
-	'getAssemblyInfo': {
-		'url': '/assembly/info/{{species}}',
+	'getInfoAnalysis': {
+		'url': '/info/analysis/{{species}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
-	'getAssemblyInfoRegion': {
-		'url': '/assembly/info/{{species}}/{{region_name}}',
+	'getInfoAssembly': {
+		'url': '/info/assembly/{{species}}',
 		'method': 'GET',
 		'content_type': 'application/json'
+	},
+	'getInfoAssemblyRegion': {
+		'url': '/info/assembly/{{species}}/{{region_name}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},
+	'getInfoBiotypes': {
+		'url': '/info/biotypes/{{species}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoComparaMethods': {
+		'url': '/info/compara/methods',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoComparaSpeciesSets': {
+		'url': '/info/compara/species_sets/{{methods}}',
+		'method': 'GET',
+		'content_type': 'application/json',
 	},
 	'getInfoComparas': {
 		'url': '/info/comparas',
@@ -83,6 +108,46 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	'getInfoEgVersion': {
+		'url': '/info/eg_version',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoExternalDbs': {
+		'url': '/info/external_dbs/{{species}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoDivisions': {
+		'url': '/info/divisions',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoGenomesByName': {
+		'url': '/info/genomes/{{name}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoGenomesByAccession': {
+		'url': '/info/genomes/{{accession}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoGenomesByAssembly': {
+		'url': '/info/genomes/{{assembly}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoGenomesByDivision': {
+		'url': '/info/genomes/{{division}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getInfoGenomesByTaxonomy': {
+		'url': '/info/genomes/{{taxonomy}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},	
 	'getInfoPing': {
 		'url': '/info/ping',
 		'method': 'GET',
@@ -109,6 +174,16 @@ ensembl_api_table = {
 		'url': '/lookup/id/{{id}}',
 		'method': 'GET',
 		'content_type': 'application/json'
+	},
+	'getLookupByGenomeName': {
+		'url': '/lookup/genome/{{name}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getLookupBySpeciesSymbol': {
+		'url': '/lookup/symbol/{{species}}/{{symbol}}',
+		'method': 'GET',
+		'content_type': 'application/json',
 	},
 
 	# Mapping
@@ -169,6 +244,28 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	'getTaxonomyByName': {
+		'url': '/taxonomy/name/{{name}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+
+	# Overlap
+	'getOverlapById': {
+		'url': '/overlap/id/{{id}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getOverlapBySpeciesRegion': {
+		'url': '/overlap/region/{{species}}/{{region}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	'getOverlapByTranslation': {
+		'url': '/overlap/translation/{{id}}',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
 
 	# Sequences
 	'getSequenceById': {
@@ -183,18 +280,24 @@ ensembl_api_table = {
 	},
 
 	# Variation
-	'getVariantConsequencesByRegion': {
-		'url': '/vep/{{species}}/{{region}}/{{allele}}/consequences',
+	'getVariationBySpeciesId': {
+		'url': '/vep/{{species}}/{{id}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
-	'getVariantConsequencesById': {
-		'url': '/vep/{{species}}/id/{{id}}/consequences',
+	'getVariantConsequencesBySpeciesId': {
+		'url': '/vep/{{species}}/id/{{id}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},
+	'getVariantConsequencesBySpeciesRegionAllele': {
+		'url': '/vep/{{species}}/region/{{region}}/{{allele}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
 }
 
+# http status codes
 ensembl_http_status_codes = {
 	200: ('OK', 'Request was a success. Only process data from the service when you receive this code'),
 	400: ('Bad Request', 'Occurs during exceptional circumstances such as the service is unable to find an ID. Check if the response Content-type was JSON. If so the JSON object is an exception hash with the message keyed under error'),
@@ -203,3 +306,7 @@ ensembl_http_status_codes = {
 	429: ('Too Many Requests', 'You have been rate-limited; wait and retry. The headers X-RateLimit-Reset, X-RateLimit-Limit and X-RateLimit-Remaining will inform you of how long you have until your limit is reset and what that limit was. If you get this response and have not exceeded your limit then check if you have made too many requests per second.'),
 	503: ('Service Unavailable', 'The service is temporarily down; retry after a pause'),
 }
+
+# set user agent
+ensembl_user_agent = {'User-Agent': 'pyEnsemblRest v' + __version__}
+ensembl_content_type = {'Content-Type': 'application/json'}

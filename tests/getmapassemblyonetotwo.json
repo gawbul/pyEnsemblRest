@@ -1,1 +1,0 @@
-{u'mappings': [{u'original': {u'assembly': u'NCBI36', u'start': 1000000, u'coordinate_system': u'chromosome', u'seq_region_name': u'X', u'end': 1000100, u'strand': 1}, u'mapped': {u'assembly': u'GRCh37', u'start': 1080000, u'coordinate_system': u'chromosome', u'seq_region_name': u'X', u'end': 1080100, u'strand': 1}}]}
