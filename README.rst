@@ -5,6 +5,7 @@ pyEnsemblRest
 ``pyEnsemblRest`` is a simple Python wrapper around the EnsEMBL REST API
 
 .. image:: https://travis-ci.org/gawbul/pyEnsemblRest.svg?branch=master :target: https://travis-ci.org/gawbul/pyEnsemblRest
+
 .. image:: https://img.shields.io/coveralls/gawbul/pyEnsemblRest.svg :target: https://coveralls.io/r/gawbul/pyEnsemblRest
 
 Installation
