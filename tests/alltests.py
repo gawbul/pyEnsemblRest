@@ -11,7 +11,7 @@ import glob, json, md5, os, sys
 # setup new EnsemblRest object
 ensemblrest = EnsemblRest()
 
-class TestEnsemblRest(unittest.TestCase):
+class TestEnsemblRest():
 	def test_archive(self):
 		self.assertEqual(md5.new(ensemblrest.getArchiveById(id='ENSG00000157764')).hexdigest(), '7f34655ad100ad0650e4814d24c9091e')
 
