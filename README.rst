@@ -19,6 +19,9 @@ pyEnsemblRest
 .. image:: https://pypip.in/download/PyEnsemblRest/badge.svg
     :target: https://pypi.python.org/pypi/PyEnsemblRest/
     :alt: Downloads
+.. image:: https://pypip.in/status/PyEnsemblRest/badge.svg
+    :target: https://pypi.python.org/pypi/PyEnsemblRest/
+    :alt: Development Status
 
 Installation
 ============
