@@ -4,8 +4,7 @@ language:
 python:
   - 2.7
 notifications:
-  - email:
-    false
+  - email: false
 install:
   - "pip install ."
   - "pip install -r requirements.txt"
