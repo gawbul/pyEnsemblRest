@@ -1,8 +1,8 @@
-from ensembl_config import ensembl_http_status_codes
-
 """
 	Implements custom exceptions for the EnsEMBL REST API
 """
+
+from ensembl_config import ensembl_http_status_codes
 
 class EnsemblRestError(Exception):
 	"""
