@@ -6,7 +6,7 @@ pyEnsemblRest
 
 .. image:: https://travis-ci.org/gawbul/pyEnsemblRest.svg?branch=master :target: https://travis-ci.org/gawbul/pyEnsemblRest
 .. image:: https://coveralls.io/repos/gawbul/pyEnsemblRest/badge.png :target: https://coveralls.io/r/gawbul/pyEnsemblRest
-    
+
 Installation
 ============
 ::
