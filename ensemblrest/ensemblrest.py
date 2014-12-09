@@ -10,7 +10,7 @@
 # import system modules
 import re
 import json
-import types
+import time
 import requests
 
 # import ensemblrest modules
@@ -24,6 +24,11 @@ class EnsemblRest(object):
 	def __init__(self, args=None):
 		# read args variable into object as session_args
 		self.session_args = args or {}
+		
+		#In order to rate limiting the requests, like https://github.com/Ensembl/ensembl-rest/wiki/Example-Python-Client
+		self.reqs_per_sec = 15
+		self.req_count = 0
+		self.last_req = 0
 		
 		# initialise default values
 		default_base_url = ensembl_default_url
@@ -82,6 +87,14 @@ class EnsemblRest(object):
 		#TODO: check required parameters
 		url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
 		
+		#Evaluating the numer of request in a second (according to EnsEMBL rest specification)
+		if self.req_count >= self.reqs_per_sec:
+			delta = time.time() - self.last_req
+			if delta < 1:
+				time.sleep(1 - delta)
+			self.last_req = time.time()
+			self.req_count = 0
+		
 		#check the request type (GET or POST?)
 		if func['method'] == 'GET':
 			resp = self.session.get(url, headers={"Content-Type": func['content_type']})
@@ -92,6 +105,9 @@ class EnsemblRest(object):
 				
 		else:
 			raise NotImplementedError, "Method '%s' not yet implemented" %(func['method'])
+		
+		#Increment the request counter to rate limit requests	
+		self.req_count += 1
 		
 		# parse status codes
 		if resp.status_code > 304:
