@@ -9,6 +9,8 @@
 
 # import system modules
 import re
+import json
+import types
 import requests
 
 # import ensemblrest modules
@@ -66,8 +68,20 @@ class EnsemblRest(object):
 	def call_api_func(self, api_call, **kwargs):
 		# build url from ensembl_api_table kwargs
 		func = ensembl_api_table[api_call]
+		
+		#TODO: check required parameters
 		url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
-		resp = self.session.get(url, headers={"Content-Type": func['content_type']})
+		
+		#check the request type (GET or POST?)
+		if func['method'] == 'GET':
+			resp = self.session.get(url, headers={"Content-Type": func['content_type']})
+			
+		elif func['method'] == 'POST':
+			#do the request
+			resp = self.session.post(url, headers={"Content-Type": func['content_type']}, data=json.dumps(kwargs))
+				
+		else:
+			raise Exception, "Method '%s' not yet implemented" %(func['method'])
 		
 		# parse status codes
 		if resp.status_code > 304:

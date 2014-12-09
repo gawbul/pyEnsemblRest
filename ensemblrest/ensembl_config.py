@@ -16,7 +16,14 @@ ensembl_api_table = {
 		'url': '/archive/id/{{id}}',
 		'method': 'GET',
 		'content_type': 'application/json'
-	},	
+	},
+
+	'getArchiveByMultipleIds': {
+		'url': '/archive/id',
+		'method': 'POST',
+		'content_type': 'application/json'
+	},
+	
 
 	# Comparative Genomics
 	'getGeneTreeById': {
@@ -49,6 +56,7 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	
 
 	# Cross References
 	'getXrefsById': {
@@ -66,6 +74,7 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	
 
 	# Information
 	'getInfoAnalysis': {
@@ -108,6 +117,7 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	#Specific of EnsEMBL genomes REST server
 	'getInfoEgVersion': {
 		'url': '/info/eg_version',
 		'method': 'GET',
@@ -118,31 +128,43 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
+	#Specific of EnsEMBL genomes REST server
 	'getInfoDivisions': {
 		'url': '/info/divisions',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
+	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByName': {
 		'url': '/info/genomes/{{name}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
+	#Specific of EnsEMBL genomes REST server
+	'getInfoGenomes': {
+		'url': '/info/genomes',
+		'method': 'GET',
+		'content_type': 'application/json',
+	},
+	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByAccession': {
 		'url': '/info/genomes/{{accession}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
+	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByAssembly': {
 		'url': '/info/genomes/{{assembly}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
+	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByDivision': {
 		'url': '/info/genomes/{{division}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
+	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByTaxonomy': {
 		'url': '/info/genomes/{{taxonomy}}',
 		'method': 'GET',
@@ -168,6 +190,7 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	
 
 	# Lookup
 	'getLookupById': {
@@ -185,13 +208,14 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
+	'getLookupByMultipleSpeciesSymbols': {
+		'url': '/lookup/symbol/{{species}}',
+		'method': 'POST',
+		'content_type': 'application/json',
+	},
+
 
 	# Mapping
-	'getMapAssemblyOneToTwo': {
-		'url': '/map/{{species}}/{{asm_one}}/{{region}}/{{asm_two}}',
-		'method': 'GET',
-		'content_type': 'application/json'
-	},
 	'getMapCdnaToRegion': {
 		'url': '/map/cdna/{{id}}/{{region}}',
 		'method': 'GET',
@@ -199,6 +223,11 @@ ensembl_api_table = {
 	},
 	'getMapCdsToRegion': {
 		'url': '/map/cds/{{id}}/{{region}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},
+	'getMapAssemblyOneToTwo': {
+		'url': '/map/{{species}}/{{asm_one}}/{{region}}/{{asm_two}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
@@ -273,15 +302,28 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	#Specific of EnsEMBL REST server ?
+	'getSequenceByMultipleIds': {
+		'url': '/sequence/id',
+		'method': 'POST',
+		'content_type': 'application/json'
+	},
 	'getSequenceByRegion': {
 		'url': '/sequence/region/{{species}}/{{region}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	#Specific of EnsEMBL REST server ?
+	'getSequenceByMultipleRegions': {
+		'url': '/sequence/region/{{species}}',
+		'method': 'POST',
+		'content_type': 'application/json'
+	},
 
-	# Variation
-	'getVariationBySpeciesId': {
-		'url': '/vep/{{species}}/{{id}}',
+
+	# VEP
+	'getVariantConsequencesByHGVSnotation': {
+		'url': '/vep/{{species}}/hgvs/{{hgvs_notation}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
@@ -290,11 +332,30 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	'getVariantConsequencesByMultipleSpeciesIds': {
+		'url': '/vep/{{species}}/id',
+		'method': 'POST',
+		'content_type': 'application/json'
+	},
 	'getVariantConsequencesBySpeciesRegionAllele': {
 		'url': '/vep/{{species}}/region/{{region}}/{{allele}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
+	'getVariantConsequencesByMultipleRegions': {
+		'url' : '/vep/{{species}}/region',
+		'method' : 'POST',
+		'content_type': 'application/json',
+	},
+	
+	
+	# Variation
+	'getVariationBySpeciesId': {
+		'url': '/vep/{{species}}/{{id}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},
+	
 }
 
 # http status codes
