@@ -57,8 +57,18 @@ class EnsemblRest(object):
 		self.session.headers.update(self.session_args.pop('headers'))
 
 		# iterate over ensembl_api_table keys and add key to class namespace
-		for key in ensembl_api_table.keys():
-			setattr(self, key, self.register_api_func(key))
+		for fun_name in ensembl_api_table.keys():
+			#setattr(self, key, self.register_api_func(key))
+			#Not as a class attribute, but a class method
+			self.__dict__[fun_name] = self.register_api_func(fun_name)
+			
+			#Set __doc__ for generic class method
+			if ensembl_api_table[fun_name].has_key("doc"):
+				self.__dict__[fun_name].__doc__ = ensembl_api_table[fun_name]["doc"]
+			
+			#add function name to the class methods
+			self.__dict__[fun_name].__name__ = fun_name
+			
 
 	# dynamic api registration function
 	def register_api_func(self, api_call):
@@ -81,7 +91,7 @@ class EnsemblRest(object):
 			resp = self.session.post(url, headers={"Content-Type": func['content_type']}, data=json.dumps(kwargs))
 				
 		else:
-			raise Exception, "Method '%s' not yet implemented" %(func['method'])
+			raise NotImplementedError, "Method '%s' not yet implemented" %(func['method'])
 		
 		# parse status codes
 		if resp.status_code > 304:
