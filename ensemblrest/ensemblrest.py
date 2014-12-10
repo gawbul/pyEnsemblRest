@@ -141,3 +141,18 @@ class EnsemblRest(object):
 
 		content = resp.text
 		return content
+
+# EnsEMBL Genome REST API object
+class EnsemblGenomeRest(EnsemblRest):
+	# class initialisation function
+	def __init__(self, base_url=ensembl_genomes_url, **kwargs):
+		#override default base_url
+		kwargs["base_url"] = base_url
+		
+		#Call the Base Class init method
+		EnsemblRest.__init__(self, **kwargs)
+	
+	
+
+#module end
+

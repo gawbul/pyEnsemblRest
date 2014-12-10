@@ -27,25 +27,46 @@ ensembl_api_table = {
 	
 
 	# Comparative Genomics
+	# Specific of EnsEMBL genomes REST server
+	'getGeneFamilyById': {
+		'doc' : 'Retrieves gene family information by ID',
+		'url': '/family/id/{{id}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},
+	#Specific of EnsEMBL genomes REST server
+	'getGeneFamilyMemberById': {
+		'doc' : 'Retrieves gene families to which a gene belongs',
+		'url': '/family/member/id/{{id}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},
+	#Specific of EnsEMBL genomes REST server
+	'getGeneFamilyMemberBySymbol': {
+		'doc' : 'Retrieves gene families to which a gene belongs',
+		'url': '/family/member/symbol/{{species}}/{{symbol}}',
+		'method': 'GET',
+		'content_type': 'application/json'
+	},
 	'getGeneTreeById': {
 		'doc' : 'Retrieves a gene tree dump for a gene tree stable identifier',
 		'url': '/genetree/id/{{id}}',
 		'method': 'GET',
 		'content_type': 'text/x-nh'
 	},
-	'getGeneTreeByMemberId': {
+	'getGeneTreeMemberById': {
 		'doc' : 'Retrieves a gene tree that contains the stable identifier',
 		'url': '/genetree/member/id/{{id}}',
 		'method': 'GET',
 		'content_type': 'text/x-phyloxml+xml'
 	},
-	'getGeneTreeByMemberSymbol': {
+	'getGeneTreeMemberBySymbol': {
 		'doc' : 'Retrieves a gene tree containing the gene identified by a symbol',
 		'url': '/genetree/member/symbol/{{species}}/{{symbol}}',
 		'method': 'GET',
 		'content_type': 'text/x-phyloxml+xml'
 	},
-	'getAlignmentBySpeciesRegion': {
+	'getAlignmentByRegion': {
 		'doc' : 'Retrieves genomic alignments as separate blocks based on a region and species',
 		'url': '/alignment/region/{{species}}/{{region}}',
 		'method': 'GET',
@@ -172,28 +193,28 @@ ensembl_api_table = {
 	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByAccession': {
 		'doc' : 'Find information about genomes containing a specified INSDC accession',
-		'url': '/info/genomes/{{accession}}',
+		'url': '/info/genomes/accession/{{division}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
 	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByAssembly': {
 		'doc' : 'Find information about a genome with a specified assembly',
-		'url': '/info/genomes/{{assembly}}',
+		'url': '/info/genomes/assembly/{{division}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
 	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByDivision': {
 		'doc' : 'Find information about all genomes in a given division. May be large for Ensembl Bacteria',
-		'url': '/info/genomes/{{division}}',
+		'url': '/info/genomes/division/{{division}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
 	#Specific of EnsEMBL genomes REST server
 	'getInfoGenomesByTaxonomy': {
 		'doc' : 'Find information about all genomes beneath a given node of the taxonomy',
-		'url': '/info/genomes/{{taxonomy}}',
+		'url': '/info/genomes/taxonomy/{{division}}',
 		'method': 'GET',
 		'content_type': 'application/json',
 	},	
@@ -296,9 +317,9 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
-	'getDescendentsById': {
+	'getDescendantsById': {
 		'doc' : 'Find all the terms descended from a given term. By default searches are conducted within the namespace of the given identifier',
-		'url': '/ontology/descendents/{{id}}',
+		'url': '/ontology/descendants/{{id}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
@@ -340,7 +361,7 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json',
 	},
-	'getOverlapBySpeciesRegion': {
+	'getOverlapByRegion': {
 		'doc' : 'Retrieves multiple types of features for a given region',
 		'url': '/overlap/region/{{species}}/{{region}}',
 		'method': 'GET',
@@ -399,19 +420,19 @@ ensembl_api_table = {
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
-	'getVariantConsequencesBySpeciesId': {
+	'getVariantConsequencesById': {
 		'doc' : 'Fetch variant consequences based on a variation identifier',
 		'url': '/vep/{{species}}/id/{{id}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
-	'getVariantConsequencesByMultipleSpeciesIds': {
+	'getVariantConsequencesByMultipleIds': {
 		'doc' : 'Fetch variant consequences for multiple ids',
 		'url': '/vep/{{species}}/id',
 		'method': 'POST',
 		'content_type': 'application/json'
 	},
-	'getVariantConsequencesBySpeciesRegionAllele': {
+	'getVariantConsequencesByRegion': {
 		'doc' : 'Fetch variant consequences',
 		'url': '/vep/{{species}}/region/{{region}}/{{allele}}',
 		'method': 'GET',
@@ -428,7 +449,7 @@ ensembl_api_table = {
 	# Variation
 	'getVariationBySpeciesId': {
 		'doc' : 'Uses a variation identifier (e.g. rsID) to return the variation features',
-		'url': '/vep/{{species}}/{{id}}',
+		'url': '/variation/{{species}}/{{id}}',
 		'method': 'GET',
 		'content_type': 'application/json'
 	},
@@ -442,6 +463,7 @@ ensembl_http_status_codes = {
 	404: ('Not Found', 'Indicates a badly formatted request. Check your URL'),
 	415: ('Unsupported Media Type', 'The server is refusing to service the request because the entity of the request is in a format not supported by the requested resource for the requested method'),
 	429: ('Too Many Requests', 'You have been rate-limited; wait and retry. The headers X-RateLimit-Reset, X-RateLimit-Limit and X-RateLimit-Remaining will inform you of how long you have until your limit is reset and what that limit was. If you get this response and have not exceeded your limit then check if you have made too many requests per second.'),
+	500: ('Internal Server Error', 'This error is not documented. Maybe there is an error in user input or REST server could have problems. Try to do the query with curl. If your data input and query are correct, contact ensembl team'),
 	503: ('Service Unavailable', 'The service is temporarily down; retry after a pause'),
 }
 

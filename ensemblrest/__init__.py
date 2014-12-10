@@ -11,10 +11,10 @@ __author__ = "Steve Moss"
 __copyright__ = "Copyright 2013-2014, Steve Moss"
 __credits__ = ["Steve Moss"]
 __license__ = "GNU GPLv3"
-__version__ = "0.2.0b"
+__version__ = "0.2.1"
 __maintainer__ = "Steve Moss"
 __email__ = "gawbul@gmail.com"
 __status__ = "beta"
 
-from .ensemblrest import EnsemblRest
+from .ensemblrest import EnsemblRest, EnsemblGenomeRest
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
