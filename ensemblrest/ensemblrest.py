@@ -11,6 +11,7 @@
 import re
 import json
 import time
+import logging
 import requests
 
 # import ensemblrest modules
@@ -18,12 +19,15 @@ from . import __version__
 from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensembl_http_status_codes, ensembl_user_agent, ensembl_content_type
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
 
+# Logger instance
+logger = logging.getLogger(__name__)
+
 # EnsEMBL REST API object
 class EnsemblRest(object):
 	# class initialisation function
-	def __init__(self, args=None):
+	def __init__(self, **kwargs):
 		# read args variable into object as session_args
-		self.session_args = args or {}
+		self.session_args = kwargs or {}
 		
 		#In order to rate limiting the requests, like https://github.com/Ensembl/ensembl-rest/wiki/Example-Python-Client
 		self.reqs_per_sec = 15
@@ -85,7 +89,23 @@ class EnsemblRest(object):
 		func = ensembl_api_table[api_call]
 		
 		#TODO: check required parameters
+		
+		#Verify required variables and raise an Exception if needed
+		mandatory_params = re.findall('\{\{(?P<m>[a-zA-Z_]+)\}\}', func['url'])
+		
+		for param in mandatory_params:
+			if not kwargs.has_key(param):
+				logger.critical("'%s' param not specified. Mandatory params are %s" %(param, mandatory_params))
+				raise Exception, "mandatory param '%s' not specified" %(param)
+		
 		url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
+		
+		#debug
+		logger.debug("Resolved url: '%s'" %(url))
+		
+		#Now I have to remove mandatory params from kwargs		
+		for param in mandatory_params:
+			del(kwargs[param])
 		
 		#Evaluating the numer of request in a second (according to EnsEMBL rest specification)
 		if self.req_count >= self.reqs_per_sec:
@@ -97,7 +117,9 @@ class EnsemblRest(object):
 		
 		#check the request type (GET or POST?)
 		if func['method'] == 'GET':
-			resp = self.session.get(url, headers={"Content-Type": func['content_type']})
+			logger.debug("Submitting a GET request. url = '%s', headers = %s, params = %s" %(url, {"Content-Type": func['content_type']}, kwargs))
+			resp = self.session.get(url, headers={"Content-Type": func['content_type']}, params=kwargs)
+			
 			
 		elif func['method'] == 'POST':
 			#do the request
