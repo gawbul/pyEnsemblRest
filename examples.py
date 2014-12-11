@@ -130,7 +130,7 @@ print ensRest.getRegulatoryFeatureById(species="homo_sapiens", id="ENSR000013481
 # Sequences
 print ensRest.getSequenceById(id='ENSG00000157764')
 sleep(1)
-print ensRest.getSequenceByMultipleIds()
+print ensRest.getSequenceByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
 print ensRest.getSequenceByRegion(species='human', region='X:1000000..1000100')
 print ensRest.getSequenceByMultipleRegions(species="homo_sapiens", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"])
 sleep(1)

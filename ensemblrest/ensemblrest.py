@@ -105,8 +105,6 @@ class EnsemblRest(object):
 		# build url from ensembl_api_table kwargs
 		func = ensembl_api_table[api_call]
 		
-		#TODO: check required parameters
-		
 		#Verify required variables and raise an Exception if needed
 		mandatory_params = re.findall('\{\{(?P<m>[a-zA-Z_]+)\}\}', func['url'])
 		
