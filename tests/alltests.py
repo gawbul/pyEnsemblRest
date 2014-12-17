@@ -1,31 +1,95 @@
 """
+    
+    This file is part of pyEnsemblRest.
+
+    pyEnsemblRest is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    pyEnsemblRest is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with pyEnsemblRest.  If not, see <http://www.gnu.org/licenses/>.
+
   This script allows testing of all pyEnsemblRest functionality.
+
 """
 
 # import required modules
 from ensemblrest import EnsemblRest
 import md5
+import shlex
+import subprocess
 from nose.tools import assert_equals
 from time import sleep
 
 # setup new EnsemblRest object
 ensemblrest = EnsemblRest()
 
+# Since data changes with ensembl version, get the current rest results with a curl command line
+# in order to derive and updated object md5sum
+def calc_curl_md5(curl_cmd):
+  args = shlex.split(curl_cmd)
+  p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  stdout, stderr = p.communicate()
+  ref_md5 = md5.new(stdout).hexdigest()
+  return ref_md5
+
+#A function to calculate object length
+def calc_curl_len(curl_cmd):
+  args = shlex.split(curl_cmd)
+  p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  stdout, stderr = p.communicate()
+  return len(stdout)
+
+
 def test_archive():
   print('in test_archive')
-  assert_equals(md5.new(ensemblrest.getArchiveById(id='ENSG00000157764')).hexdigest(), '7f34655ad100ad0650e4814d24c9091e')
+  
+  #get the curl cmd from ensembl site:
+  curl_cmd = "curl 'http://rest.ensembl.org/archive/id/ENSG00000157764?' -H 'Content-type:application/json'"
+  ref_md5 = calc_curl_md5(curl_cmd)
+  
+  #test ensembl rest function
+  assert_equals(md5.new(ensemblrest.getArchiveById(id='ENSG00000157764')).hexdigest(), ref_md5)
 
 def test_comparative_genomics():
   print('in test_comparative_genomics')
   # Comparative Genomics
-  assert_equals(md5.new(ensemblrest.getGeneTreeById(id='ENSGT00390000003602')).hexdigest(), 'bbde0d491222726ac0f63846f99c0a6b')
-  assert_equals(len(ensemblrest.getGeneTreeByMemberId(id='ENSG00000157764')), 2235232)
+  
+  #get the ensembl object via curl
+  curl_cmd = "curl 'http://rest.ensembl.org/genetree/id/ENSGT00390000003602?nh_format=simple' -H 'Content-type:text/x-nh'"
+  ref_md5 = calc_curl_md5(curl_cmd)
+  
+  #assert values
+  assert_equals(md5.new(ensemblrest.getGeneTreeById(id='ENSGT00390000003602')).hexdigest(), ref_md5)
+
+
+  curl_cmd = "curl 'http://rest.ensembl.org/genetree/member/id/ENSG00000157764?' -H 'Content-type:text/x-phyloxml+xml'"
+  ref_len = calc_curl_len(curl_cmd)
+  assert_equals(len(ensemblrest.getGeneTreeMemberById(id='ENSG00000157764')), ref_len)
   sleep(1) # sleep for a second so we don't get rate-limited
-  assert_equals(len(ensemblrest.getGeneTreeByMemberSymbol(species='human', symbol='BRCA2')), 265673)
-  assert_equals(len(ensemblrest.getAlignmentBySpeciesRegion(species='human', region='2:106040000-106040050:1')), 2972)
-  assert_equals(md5.new(ensemblrest.getHomologyById(id='ENSG00000157764')).hexdigest(), '3ed5e55d97ac91cd92a61f1f0e3920b0')
+
+  curl_cmd = "curl 'http://rest.ensembl.org/genetree/member/symbol/homo_sapiens/BRCA2?' -H 'Content-type:text/x-phyloxml+xml'"
+  ref_len = calc_curl_len(curl_cmd)  
+  assert_equals(len(ensemblrest.getGeneTreeMemberBySymbol(species='human', symbol='BRCA2')), ref_len)
+  
+  curl_cmd = "curl 'http://rest.ensembl.org/alignment/region/human/2:106040000-106040050:1' -H 'Content-type:application/json'"
+  ref_len = calc_curl_len(curl_cmd)
+  assert_equals(len(ensemblrest.getAlignmentByRegion(species='human', region='2:106040000-106040050:1')), ref_len)
+  
+  curl_cmd = "curl 'http://rest.ensembl.org/homology/id/ENSG00000157764?' -H 'Content-type:application/json'"
+  ref_md5 = calc_curl_md5(curl_cmd)
+  assert_equals(md5.new(ensemblrest.getHomologyById(id='ENSG00000157764')).hexdigest(), ref_md5)
   sleep(1) # sleep for a second so we don't get rate-limited
-  assert_equals(md5.new(ensemblrest.getHomologyBySymbol(species='human', symbol='BRCA2')).hexdigest(), 'eb0ad0a949e9e083fc05718590b57be0')
+  
+  curl_cmd = "curl 'http://rest.ensembl.org/homology/symbol/human/BRCA2?' -H 'Content-type:application/json'"
+  ref_md5 = calc_curl_md5(curl_cmd)
+  assert_equals(md5.new(ensemblrest.getHomologyBySymbol(species='human', symbol='BRCA2')).hexdigest(), ref_md5)
 
 """
 def test_cross_references():
