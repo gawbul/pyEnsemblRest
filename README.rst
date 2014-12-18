@@ -56,13 +56,13 @@ To use a custom EnsEMBL REST server you should setup the EnsemblRest as the prec
 ::
 
 	from ensemblrest import EnsemblRest
-	ensemblrest = EnsemblRest(base_url='http://localhost:3000') # setup rest object to point to localhost server. The 3000 stands for REST default port
+	ensRest = EnsemblRest(base_url='http://localhost:3000') # setup rest object to point to localhost server. The 3000 stands for REST default port
 
 You may also provide proxy server settings in the form of a dict, as follows:
 ::
 
 	from ensemblrest import EnsemblRest
-	ensemblrest = EnsemblRest(proxies={'http':'proxy.addres.com:3128', 'https':'proxy.address.com:3128'}) # setup rest object to point to localhost server
+	ensRest = EnsemblRest(proxies={'http':'proxy.addres.com:3128', 'https':'proxy.address.com:3128'}) # setup rest object to point to localhost server
 
 EnsEMBL has a rate-limit policy to deal with requests. You can do up to 15 requests per second. You could wait a little during your requests:
 ::

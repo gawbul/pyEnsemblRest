@@ -146,13 +146,31 @@ class EnsemblRest(object):
 		#Increment the request counter to rate limit requests	
 		self.req_count += 1
 		
+		#record response for debug intent
+		self.last_response = resp
+		
 		# parse status codes
 		if resp.status_code > 304:
 			ExceptionType = EnsemblRestError
+			
+			#Try to derive a more useful message than ensembl default message
+			if resp.status_code == 400:
+				try:
+					message = json.loads(resp.text)["error"]
+					
+				except KeyError, message:
+					#set the default message as ensembl default
+					message = ensembl_http_status_codes[resp.status_code][1]
+					
+			else:
+				#default ensembl message
+				message = ensembl_http_status_codes[resp.status_code][1]
+			
+			
 			if resp.status_code == 429:
 				ExceptionType = EnsemblRestRateLimitError
 
-			raise ExceptionType(ensembl_http_status_codes[resp.status_code][1], error_code=resp.status_code)
+			raise ExceptionType(message, error_code=resp.status_code)
 
 		content = resp.text
 		return content

@@ -30,7 +30,7 @@ class EnsemblRestError(Exception):
 		self.error_code = error_code
 
 		if error_code is not None and error_code in ensembl_http_status_codes:
-			msg = 'EnsEMBL REST API returned a %s (%s), %s' % \
+			msg = 'EnsEMBL REST API returned a %s (%s): %s' % \
             		(error_code, ensembl_http_status_codes[error_code][0], msg)
 
 		super(EnsemblRestError, self).__init__(msg)
