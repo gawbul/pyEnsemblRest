@@ -172,7 +172,14 @@ class EnsemblRest(object):
 
 			raise ExceptionType(message, error_code=resp.status_code)
 
-		content = resp.text
+		#handle content in different way relying on content-type
+		if func['content_type'] == 'application/json':
+			content = json.loads(resp.text)
+		
+		else:
+			#default 
+			content = resp.text
+			
 		return content
 
 # EnsEMBL Genome REST API object
