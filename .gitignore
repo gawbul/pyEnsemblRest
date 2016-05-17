@@ -52,3 +52,12 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# backup files
+*~
+
+# Pyenv environment
+.python-version
+
+# Spyder environment
+.spyderproject

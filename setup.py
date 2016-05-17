@@ -2,6 +2,7 @@
 """
 
     This file is part of pyEnsemblRest.
+    Copyright (C) 2013-2016, Steve Moss
 
     pyEnsemblRest is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,19 +26,22 @@ from setuptools import find_packages
 
 __author__ = 'Steve Moss'
 __email__ = 'gawbul@gmail.com'
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 setup(
     # Basic package information.
     name='pyensemblrest',
     version=__version__,
-    packages=find_packages(),
+    packages=find_packages(exclude=['test']),
 
     # Packaging options.
     include_package_data=True,
 
     # Package dependencies.
     install_requires=['requests>=1.0.0, <2.0.0'],
+
+    # testing modules
+    test_suite = "tests",
 
     # Metadata for PyPI.
     author='Steve Moss',
