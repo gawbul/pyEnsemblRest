@@ -26,6 +26,7 @@ from ensemblrest import EnsemblRest
 import md5
 import shlex
 import subprocess
+import unittest
 from nose.tools import assert_equals
 from time import sleep
 
@@ -173,3 +174,8 @@ def test_variation():
     assert_equals(md5.new(ensemblrest.getVariantConsequencesBySpeciesId(species='human', id='')), test_fh_map['getvariantconsequencesbyspeciesid'])
     assert_equals(md5.new(ensemblrest.getVariantConsequencesBySpeciesRegionAllele(species='human', region='9:22125503-22125502:1', allele='C')), test_fh_map['getvariantconsequencesbyspeciesregionallele'])
 """
+
+if __name__ == "__main__":
+    unittest.main()
+
+    

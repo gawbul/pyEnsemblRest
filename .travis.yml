@@ -15,6 +15,6 @@ install:
   - "pip install ."
   - "pip install -r requirements.txt"
 script:
-  - nosetests --with-coverage --cover-package=pyensemblrest tests/test_all.py
+  - nosetests --with-coverage --cover-package=pyensemblrest --cover-erase --cover-html 
 after_success:
   - coveralls

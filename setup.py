@@ -41,7 +41,7 @@ setup(
     install_requires=['requests>=1.0.0, <2.0.0'],
 
     # testing modules
-    test_suite = "tests",
+    test_suite = "test",
 
     # Metadata for PyPI.
     author='Steve Moss',
