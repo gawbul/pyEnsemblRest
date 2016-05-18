@@ -116,12 +116,19 @@ class EnsemblRest(object):
         
         url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
         
-        #debug
+        # debug
         logger.debug("Resolved url: '%s'" %(url))
         
-        #Now I have to remove mandatory params from kwargs        
+        # Now I have to remove mandatory params from kwargs        
         for param in mandatory_params:
             del(kwargs[param])
+            
+        # change the function default content type
+        content_type = func['content_type']
+        
+        if kwargs.has_key("content_type"):
+            content_type = kwargs["content_type"]
+            del(kwargs["content_type"])
         
         #Evaluating the numer of request in a second (according to EnsEMBL rest specification)
         if self.req_count >= self.reqs_per_sec:
@@ -133,9 +140,8 @@ class EnsemblRest(object):
         
         #check the request type (GET or POST?)
         if func['method'] == 'GET':
-            logger.debug("Submitting a GET request. url = '%s', headers = %s, params = %s" %(url, {"Content-Type": func['content_type']}, kwargs))
-            resp = self.session.get(url, headers={"Content-Type": func['content_type']}, params=kwargs)
-            
+            logger.debug("Submitting a GET request. url = '%s', headers = %s, params = %s" %(url, {"Content-Type": content_type}, kwargs))
+            resp = self.session.get(url, headers={"Content-Type": content_type}, params=kwargs)
             
         elif func['method'] == 'POST':
             #do the request
@@ -174,7 +180,7 @@ class EnsemblRest(object):
             raise ExceptionType(message, error_code=resp.status_code)
 
         #handle content in different way relying on content-type
-        if func['content_type'] == 'application/json':
+        if content_type == 'application/json':
             content = json.loads(resp.text)
         
         else:

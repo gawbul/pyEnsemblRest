@@ -83,7 +83,7 @@ If you look, for example, at sequence_ endpoint documentation, you will find opt
 
 In order to mask sequence and to expand the 5' UTR you may set optional parameters using the same name described in documentation:
 ::
-	
+
 	seq = ensRest.getSequenceById(id='ENSG00000157764', mask="soft", expand_5prime=1000)
 
 POST endpoints
@@ -98,6 +98,21 @@ where the example value { "ids" : ["ENSG00000157764", "ENSG00000248378" ] } is c
 ::
 
 	seqs = ensRest.getSequenceByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378"], mask="soft")
+
+Change the default Output format
+--------------------------------
+
+You can change the default output format by passing a supported ``Content-type`` using
+the ``content_type`` parameter, for example:
+::
+
+  plain_xml = ensRest.getArchiveById(id='ENSG00000157764', content_type="text/xml")
+
+For a complete list of supported ``Content-type`` see `Supported MIME Types`_ from
+ensembl REST documentation. You need also to check if the same ``Content-type`` is
+supported in EnsEMBL endpoint description.
+
+.. _Supported MIME Types: https://github.com/Ensembl/ensembl-rest/wiki/Output-formats#supported-mime-types
 
 Methods list
 ------------
