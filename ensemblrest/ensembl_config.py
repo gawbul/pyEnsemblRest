@@ -70,7 +70,7 @@ ensembl_api_table = {
 		'doc' : 'Retrieves a gene tree dump for a gene tree stable identifier',
 		'url': '/genetree/id/{{id}}',
 		'method': 'GET',
-		'content_type': 'text/x-nh'
+		'content_type': 'application/json'
 	},
 	'getGeneTreeMemberById': {
 		'doc' : 'Retrieves a gene tree that contains the stable identifier',

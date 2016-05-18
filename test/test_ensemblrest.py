@@ -17,84 +17,135 @@
     You should have received a copy of the GNU General Public License
     along with pyEnsemblRest.  If not, see <http://www.gnu.org/licenses/>.
 
-  This script allows testing of all pyEnsemblRest functionality.
+    This script allows testing of all pyEnsemblRest functionality.
 
 """
 
-# import required modules
-from ensemblrest import EnsemblRest
-import md5
+# import my module
+import ensemblrest
+
+# import other modules
+import json
+import time
 import shlex
+import logging
 import subprocess
 import unittest
-from nose.tools import assert_equals
-from time import sleep
 
-# setup new EnsemblRest object
-ensemblrest = EnsemblRest()
+#logger instance
+logger = logging.getLogger(__name__)
 
-# Since data changes with ensembl version, get the current rest results with a curl command line
-# in order to derive and updated object md5sum
-def calc_curl_md5(curl_cmd):
-    args = shlex.split(curl_cmd)
+def launch(cmd):
+    """calling a cmd with subprocess"""
+    
+    args = shlex.split(cmd)
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    ref_md5 = md5.new(stdout).hexdigest()
-    return ref_md5
+    if len(stderr) > 0: 
+        logger.debug(stderr)
+    return stdout
 
-#A function to calculate object length
-def calc_curl_len(curl_cmd):
-    args = shlex.split(curl_cmd)
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    return len(stdout)
+def jsonFromCurl(curl_cmd):
+    """Parsing a JSON curl result"""
+    
+    # execute the curl cmd
+    result = launch(curl_cmd)
+    
+    # load it as a dictionary
+    data = json.loads(result)
+    
+    return data
 
+class EnsemblRest(unittest.TestCase):
+    """A class to test EnsemblRest methods"""
+    
+    def setUp(self):
+        """Create a EnsemblRest object"""
+        self.EnsEMBL = ensemblrest.EnsemblRest()
+        
+    def tearDown(self):
+        """Sleep a while before doing next request"""
+        time.sleep(0.1)
 
-def test_archive():
-    print('in test_archive')
-  
-    #get the curl cmd from ensembl site:
-    curl_cmd = "curl 'http://rest.ensembl.org/archive/id/ENSG00000157764?' -H 'Content-type:application/json'"
-    ref_md5 = calc_curl_md5(curl_cmd)
-  
-    #test ensembl rest function
-    assert_equals(md5.new(ensemblrest.getArchiveById(id='ENSG00000157764')).hexdigest(), ref_md5)
+    def test_getArchiveById(self):
+        """Test archive GET endpoint"""
+      
+        # get the curl cmd from ensembl site:
+        curl_cmd = "curl 'http://rest.ensembl.org/archive/id/ENSG00000157764?' -H 'Content-type:application/json'"
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getArchiveById(id='ENSG00000157764')
+        
+        # testing values
+        self.assertDictEqual(reference, test)
+        
+    def test_getXMLArchiveById(self):
+        """text archive GET endpoint returning XML"""
+        
+        # get the curl cmd from ensembl site:
+        curl_cmd = "curl 'http://rest.ensembl.org/archive/id/ENSG00000157764?' -H 'Content-type:text/xml'"
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = launch(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getArchiveById(id='ENSG00000157764', content_type="text/xml")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+        
+    def test_getArchiveByMultipleIds(self):
+        """Test archive POST endpoint"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/archive/id' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "id" : ["ENSG00000157764", "ENSG00000248378"] }'"""
 
-def test_comparative_genomics():
-    print('in test_comparative_genomics')
-    # Comparative Genomics
-  
-    #get the ensembl object via curl
-    curl_cmd = "curl 'http://rest.ensembl.org/genetree/id/ENSGT00390000003602?nh_format=simple' -H 'Content-type:text/x-nh'"
-    ref_md5 = calc_curl_md5(curl_cmd)
-  
-    #assert values
-    assert_equals(md5.new(ensemblrest.getGeneTreeById(id='ENSGT00390000003602')).hexdigest(), ref_md5)
-
-
-    curl_cmd = "curl 'http://rest.ensembl.org/genetree/member/id/ENSG00000157764?' -H 'Content-type:text/x-phyloxml+xml'"
-    ref_len = calc_curl_len(curl_cmd)
-    assert_equals(len(ensemblrest.getGeneTreeMemberById(id='ENSG00000157764')), ref_len)
-    sleep(1) # sleep for a second so we don't get rate-limited
-
-    curl_cmd = "curl 'http://rest.ensembl.org/genetree/member/symbol/homo_sapiens/BRCA2?' -H 'Content-type:text/x-phyloxml+xml'"
-    ref_len = calc_curl_len(curl_cmd)  
-    assert_equals(len(ensemblrest.getGeneTreeMemberBySymbol(species='human', symbol='BRCA2')), ref_len)
-  
-    curl_cmd = "curl 'http://rest.ensembl.org/alignment/region/human/2:106040000-106040050:1' -H 'Content-type:application/json'"
-    ref_len = calc_curl_len(curl_cmd)
-    assert_equals(len(ensemblrest.getAlignmentByRegion(species='human', region='2:106040000-106040050:1')), ref_len)
-  
-    curl_cmd = "curl 'http://rest.ensembl.org/homology/id/ENSG00000157764?' -H 'Content-type:application/json'"
-    ref_md5 = calc_curl_md5(curl_cmd)
-    assert_equals(md5.new(ensemblrest.getHomologyById(id='ENSG00000157764')).hexdigest(), ref_md5)
-    sleep(1) # sleep for a second so we don't get rate-limited
-  
-    curl_cmd = "curl 'http://rest.ensembl.org/homology/symbol/human/BRCA2?' -H 'Content-type:application/json'"
-    ref_md5 = calc_curl_md5(curl_cmd)
-    assert_equals(md5.new(ensemblrest.getHomologyBySymbol(species='human', symbol='BRCA2')).hexdigest(), ref_md5)
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getArchiveByMultipleIds(id=["ENSG00000157764", "ENSG00000248378"])
+        
+        # testing values
+        self.assertListEqual(reference, test)
+        
+    def test_getGeneTreeById(self):
+        """Test genetree by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/genetree/id/ENSGT00390000003602?' -H 'Content-type:application/json'"""
+                
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGeneTreeById(id='ENSGT00390000003602')
+        
+        # testing values
+        self.assertEqual(reference, test)
+"""        
+    def test_getGeneTreeMemberById(self):
+        print ensRest.getGeneTreeMemberById(id='ENSG00000157764')
+        
+    def test_getGeneTreeMemberBySymbol(self):
+        print ensRest.getGeneTreeMemberBySymbol(species='human', symbol='BRCA2')
+        
+    def test_getAlignmentByRegion(self):
+        print ensRest.getAlignmentByRegion(species="taeniopygia_guttata", region="2:106040000-106040050:1", species_set_group="sauropsids")
+        
+    def test_getHomologyById(self):
+        print ensRest.getHomologyById(id='ENSG00000157764')
+        
+    def test_getHomologyBySymbol(self):
+        print ensRest.getHomologyBySymbol(species='human', symbol='BRCA2')
 
 """
+
+"""
+
 def test_cross_references():
     # Cross References
     assert_equals(md5.new(ensemblrest.getXrefsById(id='ENSG00000157764')).hexdigest(), '')
@@ -174,6 +225,22 @@ def test_variation():
     assert_equals(md5.new(ensemblrest.getVariantConsequencesBySpeciesId(species='human', id='')), test_fh_map['getvariantconsequencesbyspeciesid'])
     assert_equals(md5.new(ensemblrest.getVariantConsequencesBySpeciesRegionAllele(species='human', region='9:22125503-22125502:1', allele='C')), test_fh_map['getvariantconsequencesbyspeciesregionallele'])
 """
+
+class EnsemblGenomeRest(unittest.TestCase):
+    """A class to test EnsemblGenomeRest methods"""
+    
+    def setUp(self):
+        """Create a EnsemblRest object"""
+        self.EnsEMBL = ensemblrest.EnsemblGenomeRest()
+        
+    def tearDown(self):
+        """Sleep a while before doing next request"""
+        time.sleep(0.1)
+
+    #TODO
+#    print ensGenomeRest.getGeneFamilyById(id="MF_01687", compara="bacteria")
+#    print ensGenomeRest.getGeneFamilyMemberById(id="b0344", compara="bacteria")
+#    print ensGenomeRest.getGeneFamilyMemberBySymbol(symbol="lacZ", species="escherichia_coli_str_k_12_substr_mg1655", compara="bacteria")
 
 if __name__ == "__main__":
     unittest.main()

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with pyEnsemblRest.  If not, see <http://www.gnu.org/licenses/>.
 
-	Implements custom exceptions for the EnsEMBL REST API
-	
+    Implements custom exceptions for the EnsEMBL REST API
+    
 """
 
 from ensembl_config import ensembl_http_status_codes
@@ -53,5 +53,5 @@ class EnsemblRestRateLimitError(EnsemblRestError):
 class EnsemblRestServiceUnavailable(EnsemblRestError):
 	"""
 		Raised when the service is down.
-	"""	
+	"""
 	pass
