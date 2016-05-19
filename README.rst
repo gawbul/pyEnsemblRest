@@ -4,24 +4,15 @@ pyEnsemblRest
 
 ``pyEnsemblRest`` is a simple Python wrapper around the EnsEMBL REST API
 
-.. image:: https://travis-ci.org/pyOpenSci/pyEnsemblRest.svg?branch=master
-  :target: https://travis-ci.org/pyOpenSci/pyEnsemblRest
-  :alt: Build Status
-.. image:: https://coveralls.io/repos/pyOpenSci/pyEnsemblRest/badge.png
-  :target: https://coveralls.io/r/pyOpenSci/pyEnsemblRest
-  :alt: Code Coverage
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-  :target: https://gitter.im/pyOpenSci/pyEnsemblRest?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-  :alt: Gitter Chat
-.. image:: https://pypip.in/version/PyEnsemblRest/badge.svg
-    :target: https://pypi.python.org/pypi/PyEnsemblRest/
-    :alt: Latest Version
-.. image:: https://pypip.in/download/PyEnsemblRest/badge.svg
-    :target: https://pypi.python.org/pypi/PyEnsemblRest/
-    :alt: Downloads
-.. image:: https://pypip.in/status/PyEnsemblRest/badge.svg
-    :target: https://pypi.python.org/pypi/PyEnsemblRest/
-    :alt: Development Status
+.. image:: https://travis-ci.org/pyOpenSci/pyEnsemblRest.svg?branch=master :target: https://travis-ci.org/pyOpenSci/pyEnsemblRest :alt: Build Status
+
+.. image:: https://img.shields.io/coveralls/pyOpenSci/pyEnsemblRest.svg?maxAge=2592000   :target: https://img.shields.io/pypi/v/pyensemblrest.svg :alt: Code Coverage
+
+.. image:: https://img.shields.io/gitter/room/pyOpenSci/pyEnsemblRest.js.svg?maxAge=2592000   :target: https://gitter.im/pyOpenSci/pyEnsemblRest :alt: Gitter Chat
+
+.. image:: https://img.shields.io/pypi/v/pyensemblrest.svg?maxAge=2592000   :target: https://pypi.python.org/pypi/pyensemblrest
+
+.. image:: https://img.shields.io/github/downloads/pyOpenSci/pyEnsemblRest/total.svg?maxAge=2592000   :target: https://github.com/pyOpenSci/pyEnsemblRest
 
 Installation
 ============

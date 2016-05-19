@@ -32,17 +32,27 @@ import logging
 import subprocess
 import unittest
 
+#An useful way to defined a logger lever, handler, and formatter
+#logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+
 #logger instance
 logger = logging.getLogger(__name__)
 
 def launch(cmd):
     """calling a cmd with subprocess"""
     
+    logger.debug("Executing: %s" %(cmd))
+    
     args = shlex.split(cmd)
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
+    
     if len(stderr) > 0: 
         logger.debug(stderr)
+        
+    # debug
+    logger.debug("Got: %s" %(stdout))
+        
     return stdout
 
 def jsonFromCurl(curl_cmd):
@@ -66,6 +76,18 @@ class EnsemblRest(unittest.TestCase):
     def tearDown(self):
         """Sleep a while before doing next request"""
         time.sleep(0.1)
+        
+    def test_setHeaders(self):
+        """Testing EnsemblRest with no headers provided"""
+        
+        user_agent = ensemblrest.ensembl_config.ensembl_user_agent
+        self.EnsEMBL = ensemblrest.EnsemblRest(headers={})
+        self.assertEqual(self.EnsEMBL.session.headers.get("User-Agent"), user_agent)
+        
+    def test_mandatoryParameters(self):
+        """Testing EnsemblRest with no mandatory parameters"""
+        
+        self.assertRaisesRegexp(Exception, "mandatory param .* not specified", self.EnsEMBL.getArchiveById)
 
     def test_getArchiveById(self):
         """Test archive GET endpoint"""
@@ -121,12 +143,13 @@ class EnsemblRest(unittest.TestCase):
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
       
-        # execute EnsemblRest function
-        test = self.EnsEMBL.getGeneTreeById(id='ENSGT00390000003602')
+        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+        test = self.EnsEMBL.getGeneTreeById(id='ENSGT00390000003602', content_type="application/json")
         
         # testing values
         self.assertEqual(reference, test)
-"""        
+        
+        """        
     def test_getGeneTreeMemberById(self):
         print ensRest.getGeneTreeMemberById(id='ENSG00000157764')
         
@@ -142,7 +165,21 @@ class EnsemblRest(unittest.TestCase):
     def test_getHomologyBySymbol(self):
         print ensRest.getHomologyBySymbol(species='human', symbol='BRCA2')
 
-"""
+        """
+
+    def test_getSequenceByMultipleIds_additional_arguments(self):
+        """Testing getSequenceByMultipleIds with mask="soft" and expand_3prime=100"""
+
+        curl_cmd = """curl 'http://rest.ensembl.org/sequence/region/human?mask=soft;expand_3prime=100' -H 'Content-type:application/json' -H 'Accept:application/json' -X POST -d '{ "regions" : ["X:1000000..1000100:1", "ABBA01004489.1:1..100"] }'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getSequenceByMultipleRegions(species="human", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"], expand_3prime=100, mask="soft")
+        
+        # testing values
+        self.assertEqual(reference, test)
 
 """
 

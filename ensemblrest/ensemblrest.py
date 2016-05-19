@@ -34,7 +34,7 @@ import requests
 
 # import ensemblrest modules
 from . import __version__
-from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensembl_http_status_codes, ensembl_user_agent, ensembl_content_type
+from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensembl_http_status_codes, ensembl_header, ensembl_content_type
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
 
 # Logger instance
@@ -54,19 +54,23 @@ class EnsemblRest(object):
         
         # initialise default values
         default_base_url = ensembl_default_url
-        default_headers = ensembl_user_agent
+        default_headers = ensembl_header
         default_content_type = ensembl_content_type
         default_proxies = {}
         
-        # set default values if not client arguments
+        # set default values if those values are not provided
         if 'base_url' not in self.session_args:
             self.session_args['base_url'] = default_base_url
+            
         if 'headers' not in self.session_args:
             self.session_args['headers'] = default_headers
-        elif 'User-Agent' not in self.session_args['headers']:
+        
+        if 'User-Agent' not in self.session_args['headers']:
             self.session_args['headers'].update(default_headers)
-        elif 'Content-Type' not in self.session_args['headers']:
+                            
+        if 'Content-Type' not in self.session_args['headers']:
             self.session_args['headers'].update(default_content_type)
+            
         if 'proxies' not in self.session_args:
             self.session_args['proxies'] = default_proxies
         
@@ -113,6 +117,8 @@ class EnsemblRest(object):
             if not kwargs.has_key(param):
                 logger.critical("'%s' param not specified. Mandatory params are %s" %(param, mandatory_params))
                 raise Exception, "mandatory param '%s' not specified" %(param)
+            else:
+                logger.debug("Mandatory param %s found" %(param))
         
         url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
         
@@ -134,8 +140,8 @@ class EnsemblRest(object):
         if self.req_count >= self.reqs_per_sec:
             delta = time.time() - self.last_req
             if delta < 1:
+                logger.debug("waiting %s" %(delta))
                 time.sleep(1 - delta)
-            self.last_req = time.time()
             self.req_count = 0
         
         #check the request type (GET or POST?)
@@ -149,6 +155,9 @@ class EnsemblRest(object):
                 
         else:
             raise NotImplementedError, "Method '%s' not yet implemented" %(func['method'])
+            
+        # updating last_req time
+        self.last_req = time.time()
         
         #Increment the request counter to rate limit requests    
         self.req_count += 1

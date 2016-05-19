@@ -70,7 +70,7 @@ ensembl_api_table = {
         'doc' : 'Retrieves a gene tree dump for a gene tree stable identifier',
         'url': '/genetree/id/{{id}}',
         'method': 'GET',
-        'content_type': 'application/json'
+        'content_type': 'text/x-phyloxml+xml'
     },
     'getGeneTreeMemberById': {
         'doc' : 'Retrieves a gene tree that contains the stable identifier',
@@ -486,5 +486,6 @@ ensembl_http_status_codes = {
 }
 
 # set user agent
-ensembl_user_agent = {'User-Agent': 'pyEnsemblRest v' + __version__}
+ensembl_user_agent = 'pyEnsemblRest v' + __version__
+ensembl_header = {'User-Agent': ensembl_user_agent }
 ensembl_content_type = {'Content-Type': 'application/json'}
