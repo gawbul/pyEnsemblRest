@@ -33,11 +33,27 @@ import logging
 import subprocess
 import unittest
 
-#An useful way to defined a logger lever, handler, and formatter
-#logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-
 #logger instance
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug. NullHandler to put all into /dev/null
+ch = logging.NullHandler()
+
+# This console handle write all logging to and opened strem. sys.stderr is the default
+# ch = logging.StreamHandler()
+
+# Set the level for this handler
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
 
 def launch(cmd):
     """calling a cmd with subprocess"""
@@ -66,6 +82,25 @@ def jsonFromCurl(curl_cmd):
     data = json.loads(result)
     
     return data
+
+def _genericCMP(v1, v2):
+    # check that types are the same
+    if type(v1) != type(v2):
+        return False
+        
+    elif type(v1) == types.DictionaryType:
+        #call comparedict
+        if compareDict(v1, v2) is False:
+            return False
+                    
+    elif type(v1) == types.ListType:
+        #call comparedict
+        if compareList(v1, v2) is False:
+            return False
+        
+    else:
+        logger.critical("%s <> %s" %(v1, v2))
+        raise Exception, "Not implemented"
 
 # A function to evaluate if two python complex dictionaries are the same
 def compareDict(d1, d2):
@@ -96,23 +131,9 @@ def compareDict(d1, d2):
         if v1 == v2:
             continue
         
-        # check that types are the same
-        if type(v1) != type(v2):
+        # check if elements are the same
+        if _genericCMP(v1, v2) is False:
             return False
-            
-        elif type(v1) == types.DictionaryType:
-            #call comparedict
-            if compareDict(v1, v2) is False:
-                return False
-                        
-        elif type(v1) == types.ListType:
-            #call comparedict
-            if compareList(v1, v2) is False:
-                return False
-            
-        else:
-            logger.critical("%s <> %s" %(v1, v2))
-            raise Exception, "Not implemented"
             
     #if I arrive here:
     return True
@@ -134,23 +155,12 @@ def compareList(l1, l2):
         v1 = l1[i]
         v2 = l2[i]
         
-        # check that types are the same
-        if type(v1) != type(v2):
+        if v1 == v2:
+            continue
+        
+        # check if elements are the same
+        if _genericCMP(v1, v2) is False:
             return False
-            
-        elif type(v1) == types.DictionaryType:
-            #call comparedict
-            if compareDict(v1, v2) is False:
-                return False
-                
-        elif type(v1) == types.ListType:
-            #call comparedict
-            if compareList(v1, v2) is False:
-                return False
-            
-        else:
-            print v1, v2
-            raise Exception, "Not implemented"
         
     #if I arrive here
     return True
@@ -237,7 +247,7 @@ class EnsemblRest(unittest.TestCase):
         test = self.EnsEMBL.getGeneTreeById(id='ENSGT00390000003602', content_type="application/json")
         
         # testing values
-        self.assertEqual(reference, test)
+        self.assertDictEqual(reference, test)
         
     def test_getGeneTreeMemberById(self):
         """Test genetree by member id GET method"""
@@ -269,7 +279,7 @@ class EnsemblRest(unittest.TestCase):
         test = self.EnsEMBL.getGeneTreeMemberBySymbol(species='human', symbol='BRCA2', prune_species="cow", prune_taxon=9526, content_type="application/json")
         
         # testing values
-        self.assertEqual(reference, test)
+        self.assertDictEqual(reference, test)
         
 #    def test_getAlignmentByRegion(self):
 #        # execute the curl cmd an get data as a dictionary
