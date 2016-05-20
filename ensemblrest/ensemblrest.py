@@ -129,9 +129,14 @@ class EnsemblRest(object):
         for param in mandatory_params:
             del(kwargs[param])
             
-        # change the function default content type
-        content_type = func['content_type']
+        # Initialize with the ensembl default content type
+        content_type = ensembl_content_type
         
+        # Override content type if it is defined by function
+        if func.has_key("content_type"):
+            content_type = func["content_type"]
+        
+        # Ovveride content type if it is provied when calling function
         if kwargs.has_key("content_type"):
             content_type = kwargs["content_type"]
             del(kwargs["content_type"])
@@ -150,8 +155,8 @@ class EnsemblRest(object):
             resp = self.session.get(url, headers={"Content-Type": content_type}, params=kwargs)
             
         elif func['method'] == 'POST':
-            #do the request
-            resp = self.session.post(url, headers={"Content-Type": func['content_type']}, data=json.dumps(kwargs))
+            logger.debug("Submitting a POST request. url = '%s', headers = %s, data = %s" %(url, {"Content-Type": content_type}, kwargs))
+            resp = self.session.post(url, headers={"Content-Type": content_type}, data=json.dumps(kwargs))
                 
         else:
             raise NotImplementedError, "Method '%s' not yet implemented" %(func['method'])

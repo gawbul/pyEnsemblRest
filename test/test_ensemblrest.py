@@ -28,6 +28,7 @@ import ensemblrest
 import json
 import time
 import shlex
+import types
 import logging
 import subprocess
 import unittest
@@ -65,6 +66,95 @@ def jsonFromCurl(curl_cmd):
     data = json.loads(result)
     
     return data
+
+# A function to evaluate if two python complex dictionaries are the same
+def compareDict(d1, d2):
+    if d1 == d2:
+        return True
+        
+    # check keys
+    k1 = d1.keys()
+    k2 = d2.keys()
+    
+    # sorting keys
+    k1.sort()
+    k2.sort()
+    
+    logger.debug(k1)
+    logger.debug(k2)
+    
+    # check keys are equals
+    if k1 != k2:
+        return False
+        
+    #now I have to check values for each key value
+    for k in k1:
+        #get values
+        v1 = d1[k]
+        v2 = d2[k]
+        
+        if v1 == v2:
+            continue
+        
+        # check that types are the same
+        if type(v1) != type(v2):
+            return False
+            
+        elif type(v1) == types.DictionaryType:
+            #call comparedict
+            if compareDict(v1, v2) is False:
+                return False
+                        
+        elif type(v1) == types.ListType:
+            #call comparedict
+            if compareList(v1, v2) is False:
+                return False
+            
+        else:
+            logger.critical("%s <> %s" %(v1, v2))
+            raise Exception, "Not implemented"
+            
+    #if I arrive here:
+    return True
+
+def compareList(l1, l2):
+    if l1 == l2:
+        return True
+        
+    #check lengths
+    if len(l1) != len(l2):
+        return False
+        
+    #I cannot use set nor collections.Count, since elements could't be hashable
+    # sorting elements?
+    l1.sort()
+    l2.sort()
+    
+    for i in range(len(l1)):
+        v1 = l1[i]
+        v2 = l2[i]
+        
+        # check that types are the same
+        if type(v1) != type(v2):
+            return False
+            
+        elif type(v1) == types.DictionaryType:
+            #call comparedict
+            if compareDict(v1, v2) is False:
+                return False
+                
+        elif type(v1) == types.ListType:
+            #call comparedict
+            if compareList(v1, v2) is False:
+                return False
+            
+        else:
+            print v1, v2
+            raise Exception, "Not implemented"
+        
+    #if I arrive here
+    return True
+
 
 class EnsemblRest(unittest.TestCase):
     """A class to test EnsemblRest methods"""
@@ -149,23 +239,73 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
-        """        
     def test_getGeneTreeMemberById(self):
-        print ensRest.getGeneTreeMemberById(id='ENSG00000157764')
+        """Test genetree by member id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/genetree/member/id/ENSG00000157764?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+        test = self.EnsEMBL.getGeneTreeMemberById(id='ENSG00000157764', prune_species="cow", prune_taxon=9526, content_type="application/json")
+
+        # Set self.maxDiff to None to see differences
+        # self.maxDiff = None
+        
+        # testing values. Since json are nested dictionary and lists, and they are not hashable, I need to order list before
+        # checking equality, and I need to ensure that dictionaries have the same keys and values
+        self.assertTrue(compareDict(reference, test))
         
     def test_getGeneTreeMemberBySymbol(self):
-        print ensRest.getGeneTreeMemberBySymbol(species='human', symbol='BRCA2')
+        """Test genetree by symbol GET method"""
         
-    def test_getAlignmentByRegion(self):
-        print ensRest.getAlignmentByRegion(species="taeniopygia_guttata", region="2:106040000-106040050:1", species_set_group="sauropsids")
+        curl_cmd = """curl 'http://rest.ensembl.org/genetree/member/symbol/homo_sapiens/BRCA2?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
         
-    def test_getHomologyById(self):
-        print ensRest.getHomologyById(id='ENSG00000157764')
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+        test = self.EnsEMBL.getGeneTreeMemberBySymbol(species='human', symbol='BRCA2', prune_species="cow", prune_taxon=9526, content_type="application/json")
         
-    def test_getHomologyBySymbol(self):
-        print ensRest.getHomologyBySymbol(species='human', symbol='BRCA2')
-
-        """
+        # testing values
+        self.assertEqual(reference, test)
+        
+#    def test_getAlignmentByRegion(self):
+#        # execute the curl cmd an get data as a dictionary
+#        reference = jsonFromCurl(curl_cmd)
+#      
+#        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+#        test = self.EnsEMBL.getGeneTreeMemberById(id='ENSG00000157764')
+#        
+#        # testing values
+#        self.assertEqual(reference, test)
+#        
+#        print ensRest.getAlignmentByRegion(species="taeniopygia_guttata", region="2:106040000-106040050:1", species_set_group="sauropsids")
+#        
+#    def test_getHomologyById(self):
+#        # execute the curl cmd an get data as a dictionary
+#        reference = jsonFromCurl(curl_cmd)
+#      
+#        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+#        test = self.EnsEMBL.getGeneTreeMemberById(id='ENSG00000157764')
+#        
+#        # testing values
+#        self.assertEqual(reference, test)
+#        
+#        print ensRest.getHomologyById(id='ENSG00000157764')
+#        
+#    def test_getHomologyBySymbol(self):
+#        # execute the curl cmd an get data as a dictionary
+#        reference = jsonFromCurl(curl_cmd)
+#      
+#        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+#        test = self.EnsEMBL.getGeneTreeMemberById(id='ENSG00000157764')
+#        
+#        # testing values
+#        self.assertEqual(reference, test)
+#        
+#        print ensRest.getHomologyBySymbol(species='human', symbol='BRCA2')
 
     def test_getSequenceByMultipleIds_additional_arguments(self):
         """Testing getSequenceByMultipleIds with mask="soft" and expand_3prime=100"""
