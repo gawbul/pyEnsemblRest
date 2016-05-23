@@ -161,6 +161,13 @@ class EnsemblRest(object):
         else:
             raise NotImplementedError, "Method '%s' not yet implemented" %(func['method'])
             
+        #call response and return content
+        return self.parseResponse(resp, content_type)
+            
+    # A function to deal with a generic response
+    def parseResponse(self, resp, content_type="application/json"):
+        """Deal with a generic REST response"""
+        
         # updating last_req time
         self.last_req = time.time()
         
@@ -170,28 +177,26 @@ class EnsemblRest(object):
         #record response for debug intent
         self.last_response = resp
         
+        # initialize some values. Check if I'm rate limited
+        rate_reset, rate_limit, rate_remaining, retry_after = self.__get_rate_limit(resp.headers)
+        
+        # default status code
+        message = ensembl_http_status_codes[resp.status_code][1]
+        
         # parse status codes
         if resp.status_code > 304:
             ExceptionType = EnsemblRestError
             
             #Try to derive a more useful message than ensembl default message
             if resp.status_code == 400:
-                try:
-                    message = json.loads(resp.text)["error"]
-                    
-                except KeyError, message:
-                    #set the default message as ensembl default
-                    message = ensembl_http_status_codes[resp.status_code][1]
-                    
-            else:
-                #default ensembl message
-                message = ensembl_http_status_codes[resp.status_code][1]
-            
+                json_message = json.loads(resp.text)
+                if json_message.has_key("error"):
+                    message = json_message["error"]
             
             if resp.status_code == 429:
                 ExceptionType = EnsemblRestRateLimitError
 
-            raise ExceptionType(message, error_code=resp.status_code)
+            raise ExceptionType(message, error_code=resp.status_code, rate_reset=rate_reset, rate_limit=rate_limit, rate_remaining=rate_remaining, retry_after=retry_after)
 
         #handle content in different way relying on content-type
         if content_type == 'application/json':
@@ -202,6 +207,33 @@ class EnsemblRest(object):
             content = resp.text
             
         return content
+        
+    def __get_rate_limit(self, headers):
+        """Read rate limited attributes"""
+        
+        # initialize some values
+        retry_after = None
+        rate_reset = None
+        rate_limit = None
+        rate_remaining = None
+        
+        if "X-RateLimit-Reset".lower() in headers.keys():
+            rate_reset = int(headers["X-RateLimit-Reset"])
+            logger.debug("X-RateLimit-Reset: %s" %(rate_reset))
+            
+        if "X-RateLimit-Limit".lower() in headers.keys():
+            rate_limit = int(headers["X-RateLimit-Limit"])
+            logger.debug("X-RateLimit-Limit: %s" %(rate_limit))
+            
+        if "X-RateLimit-Remaining".lower() in headers.keys():
+            rate_remaining = int(headers["X-RateLimit-Remaining"])
+            logger.debug("X-RateLimit-Remaining: %s" %(rate_remaining))
+            
+        if "Retry-After".lower() in headers.keys():
+            retry_after = float(headers["Retry-After"])
+            logger.debug("Retry-After: %s" %(retry_after))
+            
+        return rate_reset, rate_limit, rate_remaining, retry_after
 
 # EnsEMBL Genome REST API object
 class EnsemblGenomeRest(EnsemblRest):

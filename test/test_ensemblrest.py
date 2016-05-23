@@ -612,7 +612,8 @@ class EnsemblRest(unittest.TestCase):
         #TODO: why this test fail sometimes?
         except AssertionError, message:
             # sometimes this test can fail. In such case, i log the error
-            logger.critical(message)
+            logger.error(message)
+            logger.critical("Sometimes 'test_getInfoSpecies' fails")
         
     def test_getInfoVariation(self):
         """Testing Info Variation GET method"""

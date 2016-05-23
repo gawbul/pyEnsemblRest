@@ -27,7 +27,7 @@ class EnsemblRestError(Exception):
         Generic error class, catch-all for most EnsemblRest issues.
         Special cases are handled by EnsemblRestRateLimitError and EnsemblRestServiceUnavailable.
     """
-    def __init__(self, msg, error_code=None, rate_reset=None, rate_limit=None, rate_remaining=None):
+    def __init__(self, msg, error_code=None, rate_reset=None, rate_limit=None, rate_remaining=None, retry_after=None):
         self.error_code = error_code
 
         if error_code is not None and error_code in ensembl_http_status_codes:
@@ -45,9 +45,9 @@ class EnsemblRestRateLimitError(EnsemblRestError):
         Raised when you've hit a rate limit.
         The amount of seconds to retry your request in will be appended to the message.
     """
-    def __init__(self, msg, error_code, rate_reset=None, rate_limit=None, rate_remaining=None):
-        if isinstance(rate_limit, int):
-            msg = '%s (Rate limit hit:  %d seconds)' % (msg, rate_reset, rate_limit, rate_remaining)
+    def __init__(self, msg, error_code, rate_reset=None, rate_limit=None, rate_remaining=None, retry_after=None):
+        if isinstance(retry_after, float):
+            msg = '%s (Rate limit hit:  Retry after %d seconds)' % (msg, retry_after)
         EnsemblRestError.__init__(self, msg, error_code=error_code)
 
 class EnsemblRestServiceUnavailable(EnsemblRestError):

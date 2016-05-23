@@ -54,7 +54,7 @@ class EnsemblRest(unittest.TestCase):
     def test_BadRequest(self):
         """Do an ensembl bad request"""
         
-        self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="miao")
+        self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="mew")
         
     def test_BadUrl(self):
         """Do a Not found request"""
@@ -63,7 +63,7 @@ class EnsemblRest(unittest.TestCase):
         old_uri = self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"]
         
         # set a new uri. This change a global value
-        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/miao/{{id}}'
+        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/mew/{{id}}'
         
         # do a request
         try:
@@ -88,7 +88,41 @@ class EnsemblRest(unittest.TestCase):
             pass
         
         self.assertRegexpMatches(e.msg, "EnsEMBL REST API returned a 400 (Bad Request)*")
-    
+        
+    def test_rateLimit(self):
+        """Simulating a rate limiting environment"""
+        
+        # get a request
+        self.EnsEMBL.getArchiveById(id="ENSG00000157764")
+        
+        # retrieve last_reponse
+        response = self.EnsEMBL.last_response
+        
+        # get headers
+        headers = response.headers
+        
+        # simulating a rate limiting
+        # https://github.com/Ensembl/ensembl-rest/wiki/Rate-Limits#a-maxed-out-rate-limit-response
+        headers["Retry-After"] = '40.0'
+        headers["X-RateLimit-Limit"] = '55000'
+        headers["X-RateLimit-Reset"] = '40'
+        headers["X-RateLimit-Period"] = '3600'
+        headers["X-RateLimit-Remaining"] = '0'
+        
+        # set a different status code
+        response.status_code = 429
+        
+        # now parse request. headers is a reference to response.headers
+        self.assertRaisesRegexp(EnsemblRestRateLimitError, "EnsEMBL REST API returned a 429 (Too Many Requests)*", self.EnsEMBL.parseResponse, response)
+        
+        try:
+            self.EnsEMBL.parseResponse(response)
+        
+        except EnsemblRestError as e:
+            pass
+        
+        self.assertRegexpMatches(e.msg, "EnsEMBL REST API returned a 429 (Too Many Requests)*")
+        
 
 if __name__ == "__main__":
     unittest.main()
