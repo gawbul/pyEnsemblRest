@@ -185,7 +185,7 @@ class EnsemblRest(unittest.TestCase):
         
     def tearDown(self):
         """Sleep a while before doing next request"""
-        time.sleep(0.1)
+        time.sleep(0.2)
         
     def test_setHeaders(self):
         """Testing EnsemblRest with no headers provided"""
@@ -391,38 +391,220 @@ class EnsemblRest(unittest.TestCase):
         
         # testing values
         self.assertEqual(reference, test)
+        
+    # Information
+    def test_getInfoAnalysis(self):
+        """Testing Info analysis GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/analysis/homo_sapiens?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoAnalysis(species="homo_sapiens")
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getInfoAssembly(self):
+        """Testing Info assembly GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/assembly/homo_sapiens?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoAssembly(species="homo_sapiens")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoAssemblyRegion(self):
+        """Testing Info Assembly by region GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/assembly/homo_sapiens/X?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoAssemblyRegion(species="homo_sapiens", region_name="X")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoBiotypes(self):
+        """Testing Info BioTypes GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/biotypes/homo_sapiens?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoBiotypes(species="homo_sapiens")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoComparaMethods(self):
+        """Testing Info Compara Methods GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/compara/methods/?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoComparaMethods()
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoComparaSpeciesSets(self):
+        """Testing Info Compara Species Sets GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/compara/species_sets/EPO?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoComparaSpeciesSets(methods="EPO")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoComparas(self):
+        """Testing Info Compara GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/comparas?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoComparas()
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoData(self):
+        """Testing Info Data GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/data/?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoData()
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getInfoExternalDbs(self):
+        """Testing Info External Dbs GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/external_dbs/homo_sapiens?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoExternalDbs(species="homo_sapiens")
+        
+        # testing values
+        self.assertEqual(reference, test)
+
+    def test_getInfoPing(self):
+        """Testing Info Ping GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/ping?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoPing()
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getInfoRest(self):
+        """Testing Info REST GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/rest?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoRest()
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getInfoSoftware(self):
+        """Testing Info Software GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/software?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoSoftware()
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getInfoSpecies(self):
+        """Testing Info Species GET method"""        
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/species?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoSpecies()
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoVariation(self):
+        """Testing Info Variation GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/variation/homo_sapiens?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoVariation(species="homo_sapiens")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoVariationPopulations(self):
+        """Testing Info Variation Populations GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/info/variation/populations/homo_sapiens?filter=LD' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoVariationPopulations(species="homo_sapiens", filter="LD")
+        
+        # testing values
+        self.assertEqual(reference, test)
 
 """
 
-
-
-def test_information():
-    # Information
-    assert_equals(md5.new(ensemblrest.getInfoAnalysis(species='human')).hexdigest(), test_fh_map['getinfoanalysis'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getInfoAssembly(species='human')).hexdigest(), test_fh_map['getinfoassembly'])
-    assert_equals(md5.new(ensemblrest.getInfoAssemblyRegion(species='human', region_name='X')).hexdigest(), test_fh_map['getinfoassemblyregion'])
-    assert_equals(md5.new(ensemblrest.getInfoBiotypes(species='human')), test_fh_map['getinfobiotypes'])
-    assert_equals(md5.new(ensemblrest.getInfoComparaMethods()), test_fh_map['getinfocomparamethods'])
-    assert_equals(md5.new(ensemblrest.getInfoComparaSpeciesSets(methods='')), test_fh_map['getinfocomparaspeciessets'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getInfoComparas()), test_fh_map['getinfocomparas'])
-    assert_equals(md5.new(ensemblrest.getInfoData()), test_fh_map['getinfodata'])
-    assert_equals(md5.new(ensemblrest.getInfoEgVersion()), test_fh_map['getinfoegversion'])
-    assert_equals(md5.new(ensemblrest.getInfoExternalDbs(species='human')), test_fh_map['getinfoexternaldbs'])
-    assert_equals(md5.new(ensemblrest.getInfoDivisions()), test_fh_map['getinfodivisions'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getInfoGenomesByName(name='')), test_fh_map['getinfogenomesbyname'])
-    assert_equals(md5.new(ensemblrest.getInfoGenomesByAccession(accession='')), test_fh_map['getinfogenomesbyaccession'])
-    assert_equals(md5.new(ensemblrest.getInfoGenomesByAssembly(assembly='')), test_fh_map['getinfogenomesbyassembly'])
-    assert_equals(md5.new(ensemblrest.getInfoGenomesByDivision(division='')), test_fh_map['getinfogenomesbydivision'])
-    assert_equals(md5.new(ensemblrest.getInfoGenomesByTaxonomy(taxonomy='')), test_fh_map['getinfogenomesbytaxonomy'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getInfoPing()), test_fh_map['getinfoping'])
-    assert_equals(md5.new(ensemblrest.getInfoRest()), test_fh_map['getinforest'])
-    assert_equals(md5.new(ensemblrest.getInfoSoftware()), test_fh_map['getinfosoftware'])
-    self.maxDiff = None
-    self.assertItemsEqual(json.dumps(ensemblrest.getInfoSpecies()), test_fh_map['getinfospecies']) # use len here due to changing order of returned dict
 
 def test_lookup():
     # Lookup
@@ -479,12 +661,15 @@ class EnsemblGenomeRest(unittest.TestCase):
         
     def tearDown(self):
         """Sleep a while before doing next request"""
-        time.sleep(0.1)
+        time.sleep(0.2)
 
     #TODO
 #    print ensGenomeRest.getGeneFamilyById(id="MF_01687", compara="bacteria")
 #    print ensGenomeRest.getGeneFamilyMemberById(id="b0344", compara="bacteria")
 #    print ensGenomeRest.getGeneFamilyMemberBySymbol(symbol="lacZ", species="escherichia_coli_str_k_12_substr_mg1655", compara="bacteria")
+#    print ensGenomeRest.getInfoEgVersion()
+#    print ensGenomeRest.getInfoDivisions()
+#    print ensGenomeRest.getInfoGenomesByName(name="campylobacter_jejuni_subsp_jejuni_bh_01_0142")
 
 if __name__ == "__main__":
     unittest.main()
