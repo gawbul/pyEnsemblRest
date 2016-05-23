@@ -38,13 +38,13 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # create console handler and set level to debug. NullHandler to put all into /dev/null
-ch = logging.NullHandler()
+#ch = logging.NullHandler()
 
 # This console handle write all logging to and opened strem. sys.stderr is the default
-# ch = logging.StreamHandler()
+ch = logging.StreamHandler()
 
 # Set the level for this handler
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.WARNING)
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -84,6 +84,10 @@ def jsonFromCurl(curl_cmd):
     return data
 
 def _genericCMP(v1, v2):
+    """Check ensembl complex elements"""
+    
+    logger.debug("Check %s == %s" %(v1, v2))
+    
     # check that types are the same
     if type(v1) != type(v2):
         return False
@@ -99,11 +103,15 @@ def _genericCMP(v1, v2):
             return False
         
     else:
-        logger.critical("%s <> %s" %(v1, v2))
-        raise Exception, "Not implemented"
+        logger.error("%s <> %s" %(v1, v2))
+        logger.critical("Case not implemented")
+    
+    #default value
+    return True
 
 # A function to evaluate if two python complex dictionaries are the same
 def compareDict(d1, d2):
+    """A function to evaluate if two python complex dictionaries are the same"""
     if d1 == d2:
         return True
         
@@ -139,6 +147,8 @@ def compareDict(d1, d2):
     return True
 
 def compareList(l1, l2):
+    """A function to evaluate if two python complex list are the same"""
+    
     if l1 == l2:
         return True
         
@@ -219,7 +229,6 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
-        
     def test_getArchiveByMultipleIds(self):
         """Test archive POST endpoint"""
         
@@ -234,7 +243,8 @@ class EnsemblRest(unittest.TestCase):
         
         # testing values
         self.assertListEqual(reference, test)
-        
+    
+    # Comparative Genomics
     def test_getGeneTreeById(self):
         """Test genetree by id GET method"""
         
@@ -281,41 +291,49 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertDictEqual(reference, test)
         
-#    def test_getAlignmentByRegion(self):
-#        # execute the curl cmd an get data as a dictionary
-#        reference = jsonFromCurl(curl_cmd)
-#      
-#        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
-#        test = self.EnsEMBL.getGeneTreeMemberById(id='ENSG00000157764')
-#        
-#        # testing values
-#        self.assertEqual(reference, test)
-#        
-#        print ensRest.getAlignmentByRegion(species="taeniopygia_guttata", region="2:106040000-106040050:1", species_set_group="sauropsids")
-#        
-#    def test_getHomologyById(self):
-#        # execute the curl cmd an get data as a dictionary
-#        reference = jsonFromCurl(curl_cmd)
-#      
-#        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
-#        test = self.EnsEMBL.getGeneTreeMemberById(id='ENSG00000157764')
-#        
-#        # testing values
-#        self.assertEqual(reference, test)
-#        
-#        print ensRest.getHomologyById(id='ENSG00000157764')
-#        
-#    def test_getHomologyBySymbol(self):
-#        # execute the curl cmd an get data as a dictionary
-#        reference = jsonFromCurl(curl_cmd)
-#      
-#        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
-#        test = self.EnsEMBL.getGeneTreeMemberById(id='ENSG00000157764')
-#        
-#        # testing values
-#        self.assertEqual(reference, test)
-#        
-#        print ensRest.getHomologyBySymbol(species='human', symbol='BRCA2')
+    def test_getAlignmentByRegion(self):
+        """Test get genomic alignment region GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/alignment/region/taeniopygia_guttata/2:106040000-106040050:1?species_set_group=sauropsids' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function. Dealing with application/json is simpler
+        test = self.EnsEMBL.getAlignmentByRegion(species="taeniopygia_guttata", region="2:106040000-106040050:1", species_set_group="sauropsids")
+        
+        # testing values. Values in list can have different order
+        self.assertTrue(compareList(reference, test))
+        
+    def test_getHomologyById(self):
+        """test get homology by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/homology/id/ENSG00000157764?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+        test = self.EnsEMBL.getHomologyById(id='ENSG00000157764')
+        
+        # testing values. Since json are nested dictionary and lists, and they are not hashable, I need to order list before
+        # checking equality, and I need to ensure that dictionaries have the same keys and values
+        self.assertTrue(compareDict(reference, test))
+        
+    def test_getHomologyBySymbol(self):
+        """test get homology by symbol"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/homology/symbol/human/BRCA2?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function. Dealing with application/json is simpler, since text/x-phyloxml+xml may change elements order
+        test = self.EnsEMBL.getHomologyBySymbol(species='human', symbol='BRCA2')
+        
+        # testing values. Since json are nested dictionary and lists, and they are not hashable, I need to order list before
+        # checking equality, and I need to ensure that dictionaries have the same keys and values
+        self.assertTrue(compareDict(reference, test))
 
     def test_getSequenceByMultipleIds_additional_arguments(self):
         """Testing getSequenceByMultipleIds with mask="soft" and expand_3prime=100"""
@@ -330,14 +348,53 @@ class EnsemblRest(unittest.TestCase):
         
         # testing values
         self.assertEqual(reference, test)
+        
+    # Cross References    
+    def test_getXrefsBySymbol(self):
+        """Testing get XRef by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/xrefs/symbol/homo_sapiens/BRCA2?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getXrefsBySymbol(species='human', symbol='BRCA2')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getXrefsByName(self):
+        """Testing get XRef by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/xrefs/name/human/BRCA2?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getXrefsByName(species='human', name='BRCA2')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getXrefsById(self):
+        """Testing get XRef by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/xrefs/id/ENSG00000157764?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getXrefsById(id='ENSG00000157764')
+        
+        # testing values
+        self.assertEqual(reference, test)
 
 """
 
-def test_cross_references():
-    # Cross References
-    assert_equals(md5.new(ensemblrest.getXrefsById(id='ENSG00000157764')).hexdigest(), '')
-    assert_equals(md5.new(ensemblrest.getXrefsByName(species='human', name='BRCA2')).hexdigest(), '')
-    assert_equals(md5.new(ensemblrest.getXrefsBySymbol(species='human', symbol='BRCA2')).hexdigest(), '')
+
 
 def test_information():
     # Information
