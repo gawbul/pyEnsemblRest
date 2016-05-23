@@ -564,13 +564,13 @@ class EnsemblRest(unittest.TestCase):
     def test_getInfoSpecies(self):
         """Testing Info Species GET method"""        
         
-        curl_cmd = """curl 'http://rest.ensembl.org/info/species?' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/info/species?division=ensembl' -H 'Content-type:application/json'"""
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getInfoSpecies()
+        test = self.EnsEMBL.getInfoSpecies(division="ensembl")
         
         # testing values
         self.assertEqual(reference, test)

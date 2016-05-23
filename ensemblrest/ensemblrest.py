@@ -69,7 +69,7 @@ class EnsemblRest(object):
             self.session_args['headers'].update(default_headers)
                             
         if 'Content-Type' not in self.session_args['headers']:
-            self.session_args['headers'].update(default_content_type)
+            self.session_args['headers']['Content-Type'] = default_content_type
             
         if 'proxies' not in self.session_args:
             self.session_args['proxies'] = default_proxies

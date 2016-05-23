@@ -260,6 +260,18 @@ ensembl_api_table = {
         'method': 'GET',
         'content_type': 'application/json'
     },
+    'getInfoVariation': {
+        'doc' : 'List the variation sources used in Ensembl for a species',
+        'url' : '/info/variation/{{species}}',
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'getInfoVariationPopulations': {
+        'doc' : 'List all populations for a species',
+        'url' : '/info/variation/populations/{{species}}',
+        'method': 'GET',
+        # Default ensembl content type
+    },
     
 
     # Lookup
@@ -488,4 +500,4 @@ ensembl_http_status_codes = {
 # set user agent
 ensembl_user_agent = 'pyEnsemblRest v' + __version__
 ensembl_header = {'User-Agent': ensembl_user_agent }
-ensembl_content_type = {'Content-Type': 'application/json'}
+ensembl_content_type = 'application/json'
