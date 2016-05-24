@@ -51,21 +51,24 @@ To use a custom EnsEMBL REST server you should setup the EnsemblRest as the prec
 .. code:: python
 
   from ensemblrest import EnsemblRest
-  ensRest = EnsemblRest(base_url='http://localhost:3000') # setup rest object to point to localhost server. The 3000 stands for REST default port
+  # setup rest object to point to localhost server. The 3000 stands for REST default port
+  ensRest = EnsemblRest(base_url='http://localhost:3000')
 
 You may also provide proxy server settings in the form of a dict, as follows:
 
 .. code:: python
 
   from ensemblrest import EnsemblRest
-  ensRest = EnsemblRest(proxies={'http':'proxy.addres.com:3128', 'https':'proxy.address.com:3128'}) # setup rest object to point to localhost server
+  # setup rest object to point to a proxy server
+  ensRest = EnsemblRest(proxies={'http':'proxy.addres.com:3128', 'https':'proxy.address.com:3128'})
 
 EnsEMBL has a rate-limit policy to deal with requests. You can do up to 15 requests per second. You could wait a little during your requests:
 
 .. code:: python
 
   from time import sleep
-  sleep(1) # sleep for a second so we don't get rate-limited
+  # sleep for a second so we don't get rate-limited
+  sleep(1)
 
 Alternatively this library verifies and limits your requests to 15 requests per second. Avoid to run different python processes to get your data, otherwise you will be blacklisted by ensembl team. If you have to do a lot or requests, consider to use POST supported endpoints, or contact ensembl team to add POST support to endpoints of your interest.
 
@@ -91,7 +94,7 @@ Multiple values for a certain parameters (for GET methods) can be submitted in a
 
   curl 'http://rest.ensembl.org/overlap/region/human/7:140424943-140624564?feature=gene;feature=transcript;feature=cds;feature=exon' -H 'Content-type:application/json'
 
-As described in `overlap region`_ GET endpoint, you can use the following function:
+as described in `overlap region`_ GET endpoint, you can use the following function:
 
 .. code:: python
 
@@ -198,6 +201,14 @@ To access the *Information* endpoints you can use the following methods:
   # to set a filter and to avoid loading the complete list of populations.
   print ensRest.getInfoVariationPopulations(species="homo_sapiens", filter="LD")
 
+To access the *Linkage Disequilibrium* endpoints you can use the following methods:
+
+.. code:: python
+
+  print ensRest.getLdId(species="human", id="rs1042779", population_name="1000GENOMES:phase_3:KHV", window_size=500, d_prime=1.0)
+  print ensRest.getLdPairwise(species="human", id1="rs6792369", id2="rs1042779")
+  print ensRest.getLdRegion(species="human", region="6:25837556..25843455", population_name="1000GENOMES:phase_3:KHV")
+
 To access the *Lookup* endpoints you can use the following methods:
 
 .. code:: python
@@ -252,6 +263,12 @@ To access the *Sequences* endpoints you can use the following methods:
   print ensRest.getSequenceByRegion(species='human', region='X:1000000..1000100')
   print ensRest.getSequenceByMultipleRegions(species="homo_sapiens", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"])
 
+To access the *Transcript Haplotypes* endpoints you can use the following methods:
+
+.. code:: python
+
+print ensRest.getTranscripsHaplotypes(species="homo_sapiens", id="ENST00000288602")
+
 To access the *VEP* endpoints you can use the following methods:
 
 .. code:: python
@@ -267,6 +284,7 @@ To access the *Variation* endpoints you can use the following method:
 .. code:: python
 
   print ensRest.getVariationById(id="rs56116432", species="homo_sapiens")
+  print ensRest.getVariationByMultipleIds(ids=["rs56116432", "COSM476" ], species="homo_sapiens")
 
 
 .. _ensembl: http://rest.ensembl.org/

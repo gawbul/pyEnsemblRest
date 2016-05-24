@@ -91,6 +91,12 @@ print ensRest.getInfoSoftware()
 print ensRest.getInfoSpecies()
 sleep(1) # sleep for a second so we don't get rate-limited
 
+# Linkage Disequilibrium
+print ensRest.getLdId(species="human", id="rs1042779", population_name="1000GENOMES:phase_3:KHV", window_size=500, d_prime=1.0)
+print ensRest.getLdPairwise(species="human", id1="rs6792369", id2="rs1042779")
+print ensRest.getLdRegion(species="human", region="6:25837556..25843455", population_name="1000GENOMES:phase_3:KHV")
+sleep(1)
+
 # Lookup
 print ensRest.getLookupById(id='ENSG00000157764')
 print ensRest.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
@@ -135,6 +141,9 @@ print ensRest.getSequenceByRegion(species='human', region='X:1000000..1000100')
 print ensRest.getSequenceByMultipleRegions(species="homo_sapiens", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"])
 sleep(1)
 
+# Transcript Haplotypes
+print ensRest.getTranscripsHaplotypes(species="homo_sapiens", id="ENST00000288602")
+
 # VEP
 print ensRest.getVariantConsequencesByHGVSnotation(species="human", hgvs_notation="AGT:c.803T>C")
 print ensRest.getVariantConsequencesById(species='human', id='COSM476')
@@ -145,6 +154,7 @@ print ensRest.getVariantConsequencesByMultipleRegions(species="human", variants=
 
 # Variation
 print ensRest.getVariationById(id="rs56116432", species="homo_sapiens")
+print ensRest.getVariationByMultipleIds(ids=["rs56116432", "COSM476" ], species="homo_sapiens")
 
 
 

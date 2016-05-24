@@ -120,7 +120,7 @@ class EnsemblRest(object):
             else:
                 logger.debug("Mandatory param %s found" %(param))
         
-        url = re.sub('\{\{(?P<m>[a-zA-Z_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
+        url = re.sub('\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
         
         # debug
         logger.debug("Resolved url: '%s'" %(url))

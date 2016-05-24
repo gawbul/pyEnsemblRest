@@ -274,7 +274,28 @@ ensembl_api_table = {
         # Default ensembl content type
     },
     
-
+    
+    # Linkage Disequilibrium
+    'getLdId': {
+        'doc' : 'Computes and returns LD values between the given variant and all other variants in a window centered around the given variant. The window size is set to 500 kb',
+        'url' : '/ld/{{species}}/{{id}}',
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'getLdPairwise': {
+        'doc' : 'Computes and returns LD values between the given variants',
+        'url' : '/ld/{{species}}/pairwise/{{id1}}/{{id2}}',
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'getLdRegion': {
+        'doc' : 'Computes and returns LD values between all pairs of variants in the defined region',
+        'url' : '/ld/{{species}}/region/{{region}}',
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    
+    
     # Lookup
     'getLookupById': {
         'doc' : 'Find the species and database for a single identifier',
@@ -448,6 +469,15 @@ ensembl_api_table = {
     },
 
 
+    # Transcript Haplotypes
+    'getTranscripsHaplotypes': {
+        'doc' : 'Computes observed transcript haplotype sequences based on phased genotype data',
+        'url': '/transcript_haplotypes/{{species}}/{{id}}',
+        'method': 'GET',
+        # Default ensembl content type
+    },
+
+
     # VEP
     'getVariantConsequencesByHGVSnotation': {
         'doc' : 'Request multiple types of sequence by a list of regions',
@@ -490,6 +520,13 @@ ensembl_api_table = {
         'url': '/variation/{{species}}/{{id}}',
         'method': 'GET',
         'content_type': 'application/json'
+    },
+    'getVariationByMultipleIds': {
+        'doc' : 'Uses a list of variant identifiers (e.g. rsID) to return the variation features including optional genotype, phenotype and population data',
+        'url': '/variation/{{species}}',
+        'method': 'POST',
+        'content_type': 'application/json',
+        'post_parameters': ['ids']
     },
     
 }
