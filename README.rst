@@ -85,6 +85,20 @@ In order to mask sequence and to expand the 5' UTR you may set optional paramete
 
   seq = ensRest.getSequenceById(id='ENSG00000157764', mask="soft", expand_5prime=1000)
 
+Multiple values for a certain parameters (for GET methods) can be submitted in a list. For example, to get the same results of
+
+.. code:: bash
+
+  curl 'http://rest.ensembl.org/overlap/region/human/7:140424943-140624564?feature=gene;feature=transcript;feature=cds;feature=exon' -H 'Content-type:application/json'
+
+As described in `overlap region`_ GET endpoint, you can use the following function:
+
+.. code:: python
+
+  data = ensRest.getOverlapByRegion(species="human", region="7:140424943-140624564", feature=["gene", "transcript", "cds", "exon"])
+
+.. _overlap region: http://rest.ensembl.org/documentation/info/overlap_region
+
 POST endpoints
 --------------
 

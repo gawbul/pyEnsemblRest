@@ -252,8 +252,9 @@ class EnsemblRest(unittest.TestCase):
         
         # call the new function and deal with the exception
         self.assertRaises(NotImplementedError, self.EnsEMBL.notImplemented, id='ENSG00000157764') 
-        
-
+    
+    
+    # Archive
     def test_getArchiveById(self):
         """Test archive GET endpoint"""
       
@@ -298,6 +299,7 @@ class EnsemblRest(unittest.TestCase):
         
         # testing values
         self.assertListEqual(reference, test)
+    
     
     # Comparative Genomics
     def test_getGeneTreeById(self):
@@ -389,21 +391,8 @@ class EnsemblRest(unittest.TestCase):
         # testing values. Since json are nested dictionary and lists, and they are not hashable, I need to order list before
         # checking equality, and I need to ensure that dictionaries have the same keys and values
         self.assertTrue(compareDict(reference, test))
-
-    def test_getSequenceByMultipleIds_additional_arguments(self):
-        """Testing getSequenceByMultipleIds with mask="soft" and expand_3prime=100"""
-
-        curl_cmd = """curl 'http://rest.ensembl.org/sequence/region/human?mask=soft;expand_3prime=100' -H 'Content-type:application/json' -H 'Accept:application/json' -X POST -d '{ "regions" : ["X:1000000..1000100:1", "ABBA01004489.1:1..100"] }'"""
-        
-        # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
-      
-        # execute EnsemblRest function
-        test = self.EnsEMBL.getSequenceByMultipleRegions(species="human", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"], expand_3prime=100, mask="soft")
-        
-        # testing values
-        self.assertEqual(reference, test)
-        
+    
+    
     # Cross References    
     def test_getXrefsBySymbol(self):
         """Testing get XRef by Id GET method"""
@@ -447,6 +436,7 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
+    
     # Information
     def test_getInfoAnalysis(self):
         """Testing Info analysis GET method"""
@@ -666,6 +656,7 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
+    
     # Linkage Disequilibrium
     def test_getLdId(self):
         """Testing get LD ID GET method"""
@@ -709,6 +700,7 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
+    
     # Lookup
     def test_getLookupById(self):
         """Testing get lookup by id GET method"""
@@ -798,6 +790,7 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
+    
     # Mapping
     def test_getMapCdnaToRegion(self):
         """Testing map CDNA to region GET method"""
@@ -854,7 +847,8 @@ class EnsemblRest(unittest.TestCase):
         
         # testing values
         self.assertEqual(reference, test)
-        
+    
+    
     # Ontologies and Taxonomy
     def test_getAncestorsById(self):
         """Testing get ancestors by id GET method"""
@@ -970,35 +964,154 @@ class EnsemblRest(unittest.TestCase):
         # checking equality, and I need to ensure that dictionaries have the same keys and values
         self.assertTrue(compareList(reference, test))
 
-"""    
+
     # Overlap
     def test_getOverlapById(self):
-        print ensRest.getOverlapById(id="ENSG00000157764", feature="gene")
+        """Testing get Overlap by ID GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/overlap/id/ENSG00000157764?feature=gene' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getOverlapById(id="ENSG00000157764", feature="gene")
+        
+        # testing values
+        self.assertEqual(reference, test)
         
     def test_getOverlapByRegion(self):
-        print ensRest.getOverlapByRegion(species="human", region="7:140424943-140624564", feature="gene")
+        """Testing get Overlap by region GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/overlap/region/human/7:140424943-140624564?feature=gene;feature=transcript;feature=cds;feature=exon' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getOverlapByRegion(species="human", region="7:140424943-140624564", feature=["gene", "transcript", "cds", "exon"])
+        
+        # testing values
+        self.assertEqual(reference, test)
         
     def test_getOverlapByTranslation(self):
-        print ensRest.getOverlapByTranslation(id="ENSP00000288602")
+        """Testing get Overlab by traslation GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/overlap/translation/ENSP00000288602?type=Superfamily' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getOverlapByTranslation(id="ENSP00000288602", type="SuperFamily")
+        
+        # testing values
+        self.assertEqual(reference, test)
+
     
     # Regulation
     def test_getRegulatoryFeatureById(self):
-        print ensRest.getRegulatoryFeatureById(species="homo_sapiens", id="ENSR00001348195")
+        """Testing get regulatory Feature GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/regulatory/human/ENSR00001885035?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getRegulatoryFeatureById(species="human", id="ENSR00001885035")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
     
     # Sequences
     def test_getSequenceById(self):
-        print ensRest.getSequenceById(id='ENSG00000157764')
+        """Testing get sequence by ID GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/sequence/id/CCDS5863.1?object_type=transcript;db_type=otherfeatures;type=cds;species=human' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getSequenceById(id='CCDS5863.1', object_type="transcript", db_type="otherfeatures", type="cds", species="human")
+        
+        # testing values
+        self.assertEqual(reference, test)
         
     def test_getSequenceByMultipleIds(self):
-        print ensRest.getSequenceByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
+        """Testing get sequence by ID POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/sequence/id' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getSequenceByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getSequenceByMultipleIds_additional_arguments(self):
+        """Testing getSequenceByMultipleIds with mask="soft" and expand_3prime=100"""
+
+        curl_cmd = """curl 'http://rest.ensembl.org/sequence/id?mask=soft;expand_3prime=100' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getSequenceByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378"], expand_3prime=100, mask="soft")
+        
+        # testing values
+        self.assertEqual(reference, test)
         
     def test_getSequenceByRegion(self):
-        print ensRest.getSequenceByRegion(species='human', region='X:1000000..1000100')
+        """Testing get sequence by region GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/sequence/region/human/X:1000000..1000100:1?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getSequenceByRegion(species='human', region='X:1000000..1000100')
+        
+        # testing values
+        self.assertEqual(reference, test)
         
     def test_getSequenceByMultipleRegions(self):
-        print ensRest.getSequenceByMultipleRegions(species="homo_sapiens", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"])
+        """Testing get sequence by region POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/sequence/region/human' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "regions" : ["X:1000000..1000100:1", "ABBA01004489.1:1..100"] }'"""
 
-"""
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getSequenceByMultipleRegions(species="human", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"])
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getSequenceByMultipleRegions_additional_arguments(self):
+        """Testing get sequence by region POST method with mask="soft" and expand_3prime=100"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/sequence/region/human?mask=soft;expand_3prime=100' -H 'Content-type:application/json' -H 'Accept:application/json' -X POST -d '{ "regions" : ["X:1000000..1000100:1", "ABBA01004489.1:1..100"] }'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getSequenceByMultipleRegions(species="human", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"], expand_3prime=100, mask="soft")
+        
+        # testing values
+        self.assertEqual(reference, test)
 
 """
 
