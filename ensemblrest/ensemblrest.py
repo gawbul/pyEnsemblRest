@@ -217,19 +217,22 @@ class EnsemblRest(object):
         rate_limit = None
         rate_remaining = None
         
-        if "X-RateLimit-Reset".lower() in headers.keys():
+        # for semplicity
+        keys = [key.lower() for key in headers.keys()]
+        
+        if "X-RateLimit-Reset".lower() in keys:
             rate_reset = int(headers["X-RateLimit-Reset"])
             logger.debug("X-RateLimit-Reset: %s" %(rate_reset))
             
-        if "X-RateLimit-Limit".lower() in headers.keys():
+        if "X-RateLimit-Limit".lower() in keys:
             rate_limit = int(headers["X-RateLimit-Limit"])
             logger.debug("X-RateLimit-Limit: %s" %(rate_limit))
             
-        if "X-RateLimit-Remaining".lower() in headers.keys():
+        if "X-RateLimit-Remaining".lower() in keys:
             rate_remaining = int(headers["X-RateLimit-Remaining"])
             logger.debug("X-RateLimit-Remaining: %s" %(rate_remaining))
             
-        if "Retry-After".lower() in headers.keys():
+        if "Retry-After".lower() in keys:
             retry_after = float(headers["Retry-After"])
             logger.debug("Retry-After: %s" %(retry_after))
             
