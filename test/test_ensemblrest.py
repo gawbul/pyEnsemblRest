@@ -25,10 +25,12 @@
 import ensemblrest
 
 # import other modules
+import re
 import json
 import time
 import shlex
 import types
+import urllib
 import logging
 import subprocess
 import unittest
@@ -101,10 +103,14 @@ def _genericCMP(v1, v2):
         #call comparedict
         if compareList(v1, v2) is False:
             return False
+            
+    elif type(v1) in [types.UnicodeType, types.FloatType, types.IntType]:
+        if v1 != v2:
+            return False
         
     else:
         logger.error("%s <> %s" %(v1, v2))
-        logger.critical("Case not implemented")
+        logger.critical("Case not implemented: type:%s" %(type(v1)))
     
     #default value
     return True
@@ -139,6 +145,14 @@ def compareDict(d1, d2):
         if v1 == v2:
             continue
         
+        # the species key may differ in some cases: ex: Tgut-Mgal-Ggal[3] <> Ggal-Mgal-Tgut[3]
+        if k in ["species", "tree"] and type(v1) == types.UnicodeType and type(v2) == types.UnicodeType:
+            pattern = re.compile("([\w]+)-?(?:\[\d\])?")
+            
+            #override values
+            v1 = re.findall(pattern, v1)
+            v2 = re.findall(pattern, v2)
+            
         # check if elements are the same
         if _genericCMP(v1, v2) is False:
             return False
@@ -157,19 +171,28 @@ def compareList(l1, l2):
         return False
         
     #I cannot use set nor collections.Count, since elements could't be hashable
-    # sorting elements?
-    l1.sort()
-    l2.sort()
-    
+    # sorting elements doesn't apply since elements may be un-hashable
     for i in range(len(l1)):
         v1 = l1[i]
-        v2 = l2[i]
         
-        if v1 == v2:
-            continue
+        flag_found = False
         
-        # check if elements are the same
-        if _genericCMP(v1, v2) is False:
+        for j in range(len(l2)):
+            v2 = l2[j]
+        
+            if v1 == v2:
+                flag_found = True
+            
+            # check if elements are the same
+            elif _genericCMP(v1, v2) is True:
+                flag_found = True
+                
+            #If I found en equal element, i can stop
+            if flag_found is True:
+                break
+            
+        #After cycling amoung l2, if I can't find an equal element
+        if flag_found is False:
             return False
         
     #if I arrive here
@@ -685,49 +708,299 @@ class EnsemblRest(unittest.TestCase):
         
         # testing values
         self.assertEqual(reference, test)
+        
+    # Lookup
+    def test_getLookupById(self):
+        """Testing get lookup by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/lookup/id/ENSG00000157764?expand=1' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getLookupById(id='ENSG00000157764', expand=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getLookupByMultipleIds(self):
+        """Testing get lookup id POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/lookup/id' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
 
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getLookupByMultipleIds_additional_arguments(self):
+        """Testing get lookup id POST method with additional arguments"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/lookup/id?expand=1' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ], expand=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getLookupBySpeciesSymbol(self):
+        """Testing get lookup by species GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/lookup/symbol/homo_sapiens/BRCA2?expand=1' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getLookupBySpeciesSymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getLookupByMultipleSpeciesSymbols(self):
+        """Testing get lookup by species POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/lookup/symbol/homo_sapiens' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "symbols" : ["BRCA2", "BRAF" ] }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getLookupByMultipleSpeciesSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getLookupByMultipleSpeciesSymbols_additional_arguments(self):
+        """Testing get lookup by species POST method  with additional arguments"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/lookup/symbol/homo_sapiens?expand=1' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "symbols" : ["BRCA2", "BRAF" ] }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getLookupByMultipleSpeciesSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"], expand=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    # Mapping
+    def test_getMapCdnaToRegion(self):
+        """Testing map CDNA to region GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/map/cdna/ENST00000288602/100..300?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getMapCdnaToRegion(id='ENST00000288602', region='100..300')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getMapCdsToRegion(self):
+        """Testing map CDS to region GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/map/cds/ENST00000288602/1..1000?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getMapCdsToRegion(id='ENST00000288602', region='1..1000')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getMapAssemblyOneToTwo(self):
+        """Testing converting coordinates between assemblies GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/map/human/GRCh37/X:1000000..1000100:1/GRCh38?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getMapAssemblyOneToTwo(species='human', asm_one='GRCh37', region='X:1000000..1000100:1', asm_two='GRCh38')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getMapTranslationToRegion(self):
+        """Testing converting protein(traslation) to genomic coordinates GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/map/translation/ENSP00000288602/100..300?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getMapTranslationToRegion(id='ENSP00000288602', region='100..300')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    # Ontologies and Taxonomy
+    def test_getAncestorsById(self):
+        """Testing get ancestors by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ontology/ancestors/GO:0005667?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getAncestorsById(id='GO:0005667')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getAncestorsChartById(self):
+        """Testing get ancestors chart by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ontology/ancestors/chart/GO:0005667?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getAncestorsChartById(id='GO:0005667')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getDescendantsById(self):
+        """Testing get descendants by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ontology/descendants/GO:0005667?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getDescendantsById(id='GO:0005667')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getOntologyById(self):
+        """Test get ontology by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ontology/id/GO:0005667?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getOntologyById(id='GO:0005667')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getOntologyByName(self):
+        """Test get ontology by name GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ontology/name/%s?' -H 'Content-type:application/json'""" %(urllib.quote("transcription factor complex"))
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getOntologyByName(name='transcription factor complex')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getTaxonomyClassificationById(self):
+        """Testing get taxonomy classification by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/taxonomy/classification/9606?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getTaxonomyClassificationById(id='9606')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getTaxonomyById(self):
+        """Testing get Taxonomy by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/taxonomy/id/9606?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getTaxonomyById(id='9606')
+        
+        # testing values. Since json are nested dictionary and lists, and they are not hashable, I need to order list before
+        # checking equality, and I need to ensure that dictionaries have the same keys and values
+        self.assertTrue(compareDict(reference, test))
+        
+    def test_getTaxonomyByName(self):
+        """Testing get taxonomy by name GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/taxonomy/name/Homo%25?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getTaxonomyByName(name="Homo%25")
+        
+        # testing values. Since json are nested dictionary and lists, and they are not hashable, I need to order list before
+        # checking equality, and I need to ensure that dictionaries have the same keys and values
+        self.assertTrue(compareList(reference, test))
+
+"""    
+    # Overlap
+    def test_getOverlapById(self):
+        print ensRest.getOverlapById(id="ENSG00000157764", feature="gene")
+        
+    def test_getOverlapByRegion(self):
+        print ensRest.getOverlapByRegion(species="human", region="7:140424943-140624564", feature="gene")
+        
+    def test_getOverlapByTranslation(self):
+        print ensRest.getOverlapByTranslation(id="ENSP00000288602")
+    
+    # Regulation
+    def test_getRegulatoryFeatureById(self):
+        print ensRest.getRegulatoryFeatureById(species="homo_sapiens", id="ENSR00001348195")
+    
+    # Sequences
+    def test_getSequenceById(self):
+        print ensRest.getSequenceById(id='ENSG00000157764')
+        
+    def test_getSequenceByMultipleIds(self):
+        print ensRest.getSequenceByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
+        
+    def test_getSequenceByRegion(self):
+        print ensRest.getSequenceByRegion(species='human', region='X:1000000..1000100')
+        
+    def test_getSequenceByMultipleRegions(self):
+        print ensRest.getSequenceByMultipleRegions(species="homo_sapiens", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"])
 
 """
 
-
-def test_lookup():
-    # Lookup
-    assert_equals(md5.new(ensemblrest.getLookupById(id='ENSG00000157764')), test_fh_map['getlookupbyid'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getLookupByGenomeName(name='')), test_fh_map['getlookupbygenomename'])
-    assert_equals(md5.new(ensemblrest.getLookupBySpeciesSymbol(species='human', symbol='BRCA2')), test_fh_map['getlookupbyspeciessymbol'])
-
-def test_mapping():
-    # Mapping
-    assert_equals(md5.new(ensemblrest.getMapAssemblyOneToTwo(species='human', asm_one='NCBI36', region='X:1000000..1000100:1', asm_two='GRCh37')), test_fh_map['getmapassemblyonetotwo'])
-    assert_equals(md5.new(ensemblrest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')), test_fh_map['getmapcdnatoregion'])
-    assert_equals(md5.new(ensemblrest.getMapCdsToRegion(id='ENST00000288602', region='1..1000')), test_fh_map['getmapcdstoregion'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getMapTranslationToRegion(id='ENSP00000288602', region='100..300')), test_fh_map['getmaptranslationtoregion'])
-
-def test_ontologies_and_taxonomy():
-    # Ontologies and Taxonomy
-    assert_equals(md5.new(ensemblrest.getAncestorsById(id='GO:0005667')), test_fh_map['getancestorsbyid'])
-    assert_equals(md5.new(ensemblrest.getAncestorsChartById(id='GO:0005667')), test_fh_map['getancestorschartbyid'])
-    assert_equals(md5.new(ensemblrest.getDescendentsById(id='GO:0005667')), test_fh_map['getdescendentsbyid'])
-    assert_equals(md5.new(ensemblrest.getOntologyById(id='GO:0005667')), test_fh_map['getontologybyid'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getOntologyByName(name='transcription factor complex')), test_fh_map['getontologybyname'])
-    assert_equals(md5.new(ensemblrest.getTaxonomyClassificationById(id='9606')), test_fh_map['gettaxonomyclassificationbyid'])
-    assert_equals(md5.new(ensemblrest.getTaxonomyById(id='9606')), len(test_fh_map['gettaxonomybyid']))
-    assert_equals(md5.new(ensemblrest.getTaxonomyByName(name='')), len(test_fh_map['gettaxonomybyname']))
-
-def test_overlap():
-    # Overlap
-    assert_equals(md5.new(ensemblrest.getOverlapById(id='ENSG00000157764')), test_fh_map['getoverlapbyid'])
-    assert_equals(md5.new(ensemblrest.getOverlapBySpeciesRegion(species='', region='')), test_fh_map['getoverlapbyspeciesregion'])
-    sleep(1) # sleep for a second so we don't get rate-limited
-    assert_equals(md5.new(ensemblrest.getOverlapByTranslation(id='ENSG00000157764')), test_fh_map['getoverlapbytranslation'])
-    
-def test_sequences():
-    # Sequences
-    assert_equals(md5.new(ensemblrest.getSequenceById(id='ENSG00000157764')), test_fh_map['getsequencebyid'])
-    assert_equals(md5.new(ensemblrest.getSequenceByRegion(species='human', region='X:1000000..1000100')), test_fh_map['getsequencebyregion'])
+"""
 
 def test_variation():
     # Variation

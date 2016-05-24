@@ -115,6 +115,7 @@ class EnsemblRest(unittest.TestCase):
         # now parse request. headers is a reference to response.headers
         self.assertRaisesRegexp(EnsemblRestRateLimitError, "EnsEMBL REST API returned a 429 (Too Many Requests)*", self.EnsEMBL.parseResponse, response)
         
+        # try to read exception message
         try:
             self.EnsEMBL.parseResponse(response)
         
