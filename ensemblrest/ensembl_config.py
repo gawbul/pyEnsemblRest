@@ -40,7 +40,8 @@ ensembl_api_table = {
         'doc' : 'Retrieve the archived sequence for a set of identifiers',
         'url': '/archive/id',
         'method': 'POST',
-        'content_type': 'application/json'
+        'content_type': 'application/json',
+        'post_parameters': ['id']
     },
     
 
@@ -285,7 +286,8 @@ ensembl_api_table = {
         'doc' : 'Find the species and database for several identifiers. IDs that are not found are returned with no data',
         'url': '/lookup/id',
         'method': 'POST',
-        'content_type': 'application/json'
+        'content_type': 'application/json',
+        'post_parameters': ['ids']
     },
     #Specific of EnsEMBL genomes REST server
     'getLookupByGenomeName': {
@@ -305,6 +307,7 @@ ensembl_api_table = {
         'url': '/lookup/symbol/{{species}}',
         'method': 'POST',
         'content_type': 'application/json',
+        'post_parameters': ['symbols']
     },
 
 
@@ -426,7 +429,8 @@ ensembl_api_table = {
         'doc' : 'Request multiple types of sequence by a stable identifier list',
         'url': '/sequence/id',
         'method': 'POST',
-        'content_type': 'application/json'
+        'content_type': 'application/json',
+        'post_parameters': ['ids']
     },
     'getSequenceByRegion': {
         'doc' : 'Returns the genomic sequence of the specified region of the given species',
@@ -439,7 +443,8 @@ ensembl_api_table = {
         'doc' : 'Request multiple types of sequence by a list of regions',
         'url': '/sequence/region/{{species}}',
         'method': 'POST',
-        'content_type': 'application/json'
+        'content_type': 'application/json',
+        'post_parameters': ['regions']
     },
 
 
@@ -460,7 +465,9 @@ ensembl_api_table = {
         'doc' : 'Fetch variant consequences for multiple ids',
         'url': '/vep/{{species}}/id',
         'method': 'POST',
-        'content_type': 'application/json'
+        'content_type': 'application/json',
+        'post_parameters': ['ids']
+        
     },
     'getVariantConsequencesByRegion': {
         'doc' : 'Fetch variant consequences',
@@ -473,6 +480,7 @@ ensembl_api_table = {
         'url' : '/vep/{{species}}/region',
         'method' : 'POST',
         'content_type': 'application/json',
+        'post_parameters': ['variants']
     },
     
     

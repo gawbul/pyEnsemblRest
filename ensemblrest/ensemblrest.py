@@ -155,8 +155,17 @@ class EnsemblRest(object):
             resp = self.session.get(url, headers={"Content-Type": content_type}, params=kwargs)
             
         elif func['method'] == 'POST':
-            logger.debug("Submitting a POST request. url = '%s', headers = %s, data = %s" %(url, {"Content-Type": content_type}, kwargs))
-            resp = self.session.post(url, headers={"Content-Type": content_type}, data=json.dumps(kwargs))
+            # in a POST request, separate post parameters from other parameters
+            data = {}
+            
+            # pass key=value in POST data from kwargs
+            for key in func['post_parameters']:
+                data[key] = kwargs[key]
+                del(kwargs[key])
+                
+            logger.debug("Submitting a POST request. url = '%s', headers = %s, params = %s, data = %s" %(url, {"Content-Type": content_type}, kwargs, data))
+            # post parameters are load as POST data, other parameters are url parameters as GET requests
+            resp = self.session.post(url, headers={"Content-Type": content_type}, data=json.dumps(data), params=kwargs)
                 
         else:
             raise NotImplementedError, "Method '%s' not yet implemented" %(func['method'])
