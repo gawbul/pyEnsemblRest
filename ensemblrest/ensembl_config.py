@@ -294,13 +294,13 @@ ensembl_api_table = {
         'method': 'GET',
         'content_type': 'application/json',
     },
-    'getLookupBySpeciesSymbol': {
+    'getLookupBySymbol': {
         'doc' : 'Find the species and database for a symbol in a linked external database',
         'url': '/lookup/symbol/{{species}}/{{symbol}}',
         'method': 'GET',
         'content_type': 'application/json',
     },
-    'getLookupByMultipleSpeciesSymbols': {
+    'getLookupByMultipleSymbols': {
         'doc' : 'Find the species and database for a set of symbols in a linked external database. Unknown symbols are omitted from the response',
         'url': '/lookup/symbol/{{species}}',
         'method': 'POST',
@@ -477,7 +477,7 @@ ensembl_api_table = {
     
     
     # Variation
-    'getVariationBySpeciesId': {
+    'getVariationById': {
         'doc' : 'Uses a variation identifier (e.g. rsID) to return the variation features',
         'url': '/variation/{{species}}/{{id}}',
         'method': 'GET',

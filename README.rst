@@ -204,8 +204,8 @@ To access the *Lookup* endpoints you can use the following methods:
 
   print ensRest.getLookupById(id='ENSG00000157764')
   print ensRest.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
-  print ensRest.getLookupBySpeciesSymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
-  print ensRest.getLookupByMultipleSpeciesSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
+  print ensRest.getLookupBySymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
+  print ensRest.getLookupByMultipleSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
 
 To access the *Mapping* endpoints you can use the following methods:
 
@@ -266,7 +266,7 @@ To access the *Variation* endpoints you can use the following method:
 
 .. code:: python
 
-  print ensRest.getVariationBySpeciesId(id="rs56116432", species="homo_sapiens")
+  print ensRest.getVariationById(id="rs56116432", species="homo_sapiens")
 
 
 .. _ensembl: http://rest.ensembl.org/

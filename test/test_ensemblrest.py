@@ -746,7 +746,7 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
-    def test_getLookupBySpeciesSymbol(self):
+    def test_getLookupBySymbol(self):
         """Testing get lookup by species GET method"""
         
         curl_cmd = """curl 'http://rest.ensembl.org/lookup/symbol/homo_sapiens/BRCA2?expand=1' -H 'Content-type:application/json'"""
@@ -755,12 +755,12 @@ class EnsemblRest(unittest.TestCase):
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getLookupBySpeciesSymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
+        test = self.EnsEMBL.getLookupBySymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
         
         # testing values
         self.assertEqual(reference, test)
     
-    def test_getLookupByMultipleSpeciesSymbols(self):
+    def test_getLookupByMultipleSymbols(self):
         """Testing get lookup by species POST method"""
         
         curl_cmd = """curl 'http://rest.ensembl.org/lookup/symbol/homo_sapiens' -H 'Content-type:application/json' \
@@ -770,12 +770,12 @@ class EnsemblRest(unittest.TestCase):
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getLookupByMultipleSpeciesSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
+        test = self.EnsEMBL.getLookupByMultipleSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
         
         # testing values
         self.assertEqual(reference, test)
     
-    def test_getLookupByMultipleSpeciesSymbols_additional_arguments(self):
+    def test_getLookupByMultipleSymbols_additional_arguments(self):
         """Testing get lookup by species POST method  with additional arguments"""
         
         curl_cmd = """curl 'http://rest.ensembl.org/lookup/symbol/homo_sapiens?expand=1' -H 'Content-type:application/json' \
@@ -785,7 +785,7 @@ class EnsemblRest(unittest.TestCase):
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getLookupByMultipleSpeciesSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"], expand=1)
+        test = self.EnsEMBL.getLookupByMultipleSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"], expand=1)
         
         # testing values
         self.assertEqual(reference, test)
@@ -1112,15 +1112,176 @@ class EnsemblRest(unittest.TestCase):
         
         # testing values
         self.assertEqual(reference, test)
+        
+        
+    # Transcript Haplotypes
+    def test_getTranscripsHaplotypes(self):
+        """Testing get transcripts Haplotypes GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/transcript_haplotypes/homo_sapiens/ENST00000288602?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getTranscripsHaplotypes(species="homo_sapiens", id="ENST00000288602")
+        
+        # testing values
+        self.assertEqual(reference, test)
 
-"""
+    
+    # VEP
+    def test_getVariantConsequencesByHGVSnotation(self):
+        """Testing get Variant Consequences by HFVS notation GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/vep/human/hgvs/AGT:c.803T>C?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesByHGVSnotation(species="human", hgvs_notation="AGT:c.803T>C")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getVariantConsequencesById(self):
+        """Testing get variant Consequences by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/vep/human/id/COSM476?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesById(species='human', id='COSM476')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getVariantConsequencesByMultipleIds(self):
+        """Testing get variant Consequences by id POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/vep/human/id' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["rs56116432", "COSM476" ] }'"""
 
-def test_variation():
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesByMultipleIds(species="human", ids=[ "rs56116432", "COSM476" ])
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getVariantConsequencesByMultipleIds_additional_arguments(self):
+        """Testing get variant Consequences by id POST method using Blosum62=1, CSN=1"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/vep/human/id?Blosum62=1;CSN=1' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["rs56116432", "COSM476" ] }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesByMultipleIds(species="human", ids=[ "rs56116432", "COSM476" ], Blosum62=1, CSN=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getVariantConsequencesByRegion(self):
+        """Testing get variant consequences by Region GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/vep/human/region/9:22125503-22125502:1/C?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesByRegion(species='human', region='9:22125503-22125502:1', allele='C')
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getVariantConsequencesByMultipleRegions(self):
+        """Testing get variant consequences by Region POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/vep/homo_sapiens/region' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "variants" : ["21 26960070 rs116645811 G A . . .", "21 26965148 rs1135638 G A . . ." ] }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesByMultipleRegions(species="human", variants=["21 26960070 rs116645811 G A . . .", "21 26965148 rs1135638 G A . . ." ] )
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getVariantConsequencesByMultipleRegions_additional_arguments(self):
+        """Testing get variant consequences by Region POST method Blosum62=1, CSN=1"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/vep/homo_sapiens/region?Blosum62=1;CSN=1' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "variants" : ["21 26960070 rs116645811 G A . . .", "21 26965148 rs1135638 G A . . ." ] }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesByMultipleRegions(species="human", variants=["21 26960070 rs116645811 G A . . .", "21 26965148 rs1135638 G A . . ." ], Blosum62=1, CSN=1 )
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    
     # Variation
-    assert_equals(md5.new(ensemblrest.getVariationBySpeciesId(species='human', id='')), test_fh_map['getvariationbyspeciesid'])
-    assert_equals(md5.new(ensemblrest.getVariantConsequencesBySpeciesId(species='human', id='')), test_fh_map['getvariantconsequencesbyspeciesid'])
-    assert_equals(md5.new(ensemblrest.getVariantConsequencesBySpeciesRegionAllele(species='human', region='9:22125503-22125502:1', allele='C')), test_fh_map['getvariantconsequencesbyspeciesregionallele'])
-"""
+    def test_getVariationById(self):
+        """Testing get variation by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/variation/human/rs56116432?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariationById(id="rs56116432", species="homo_sapiens")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getVariationByMultipleIds(self):
+        """Testing get variation by id POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/variation/homo_sapiens' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["rs56116432", "COSM476" ] }'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariationByMultipleIds(ids=["rs56116432", "COSM476" ], species="homo_sapiens")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getVariationByMultipleIds_additional_arguments(self):
+        """Testing get variation by id POST method with genotypes=1"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/variation/homo_sapiens?genotypes=1' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "ids" : ["rs56116432", "COSM476" ] }'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariationByMultipleIds(ids=["rs56116432", "COSM476" ], species="homo_sapiens", genotypes=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    
+    # Variation GA4GH
+
 
 class EnsemblGenomeRest(unittest.TestCase):
     """A class to test EnsemblGenomeRest methods"""

@@ -94,9 +94,9 @@ sleep(1) # sleep for a second so we don't get rate-limited
 # Lookup
 print ensRest.getLookupById(id='ENSG00000157764')
 print ensRest.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
-print ensRest.getLookupBySpeciesSymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
+print ensRest.getLookupBySymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
 sleep(1)
-print ensRest.getLookupByMultipleSpeciesSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
+print ensRest.getLookupByMultipleSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
 
 # Mapping
 print ensRest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')
@@ -144,7 +144,7 @@ print ensRest.getVariantConsequencesByRegion(species='human', region='9:22125503
 print ensRest.getVariantConsequencesByMultipleRegions(species="human", variants=["21 26960070 rs116645811 G A . . .", "21 26965148 rs1135638 G A . . ." ] )
 
 # Variation
-print ensRest.getVariationBySpeciesId(id="rs56116432", species="homo_sapiens")
+print ensRest.getVariationById(id="rs56116432", species="homo_sapiens")
 
 
 
