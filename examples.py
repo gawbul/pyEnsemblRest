@@ -99,6 +99,7 @@ sleep(1)
 
 # Lookup
 print ensRest.getLookupById(id='ENSG00000157764')
+print ensGenomeRest.getLookupByGenomeName(name="campylobacter_jejuni_subsp_jejuni_bh_01_0142")
 print ensRest.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
 print ensRest.getLookupBySymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
 sleep(1)

@@ -242,7 +242,7 @@ class EnsemblRest(unittest.TestCase):
         }
         
         # register this method
-        self.EnsEMBL.__dict__["notImplemented"] = self.EnsEMBL.register_api_func("notImplemented")
+        self.EnsEMBL.__dict__["notImplemented"] = self.EnsEMBL.register_api_func("notImplemented", ensemblrest.ensembl_config.ensembl_api_table)
             
         #Set __doc__ for generic class method
         self.EnsEMBL.__dict__["notImplemented"].__doc__ = ensemblrest.ensemblrest.ensembl_api_table["notImplemented"]["doc"]
@@ -1430,6 +1430,20 @@ class EnsemblGenomeRest(unittest.TestCase):
       
         # execute EnsemblRest function
         test = self.EnsEMBL.getInfoGenomesByTaxonomy(division="Arabidopsis")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getLookupByGenomeName(self):
+        """Testing Lookup by genome name GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/lookup/genome/campylobacter_jejuni_subsp_jejuni_bh_01_0142?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getLookupByGenomeName(name="campylobacter_jejuni_subsp_jejuni_bh_01_0142")
         
         # testing values
         self.assertEqual(reference, test)

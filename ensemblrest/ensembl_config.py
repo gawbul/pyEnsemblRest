@@ -27,7 +27,8 @@ from . import __version__
 ensembl_default_url = 'http://rest.ensembl.org'
 ensembl_genomes_url = 'http://rest.ensemblgenomes.org'
 
-# api lookup table
+# ensembl api lookup table. Specify here function common to ensembl and ensemblgenomes
+# REST server
 ensembl_api_table = {
     # Archive
     'getArchiveById': {
@@ -46,27 +47,6 @@ ensembl_api_table = {
     
 
     # Comparative Genomics
-    # Specific of EnsEMBL genomes REST server
-    'getGeneFamilyById': {
-        'doc' : 'Retrieves gene family information by ID',
-        'url': '/family/id/{{id}}',
-        'method': 'GET',
-        'content_type': 'application/json'
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getGeneFamilyMemberById': {
-        'doc' : 'Retrieves gene families to which a gene belongs',
-        'url': '/family/member/id/{{id}}',
-        'method': 'GET',
-        'content_type': 'application/json'
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getGeneFamilyMemberBySymbol': {
-        'doc' : 'Retrieves gene families to which a gene belongs',
-        'url': '/family/member/symbol/{{species}}/{{symbol}}',
-        'method': 'GET',
-        'content_type': 'application/json'
-    },
     'getGeneTreeById': {
         'doc' : 'Retrieves a gene tree dump for a gene tree stable identifier',
         'url': '/genetree/id/{{id}}',
@@ -175,65 +155,9 @@ ensembl_api_table = {
         'method': 'GET',
         'content_type': 'application/json'
     },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoEgVersion': {
-        'doc' : 'Returns the Ensembl Genomes version of the databases backing this service',
-        'url': '/info/eg_version',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
     'getInfoExternalDbs': {
         'doc' : 'Lists all available external sources for a species',
         'url': '/info/external_dbs/{{species}}',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoDivisions': {
-        'doc' : 'Get list of all Ensembl divisions for which information is available',
-        'url': '/info/divisions',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoGenomesByName': {
-        'doc' : 'Find information about a given genome',
-        'url': '/info/genomes/{{name}}',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoGenomes': {
-        'doc' : 'Find information about all genomes. Response may be very large',
-        'url': '/info/genomes',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoGenomesByAccession': {
-        'doc' : 'Find information about genomes containing a specified INSDC accession',
-        'url': '/info/genomes/accession/{{division}}',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoGenomesByAssembly': {
-        'doc' : 'Find information about a genome with a specified assembly',
-        'url': '/info/genomes/assembly/{{division}}',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoGenomesByDivision': {
-        'doc' : 'Find information about all genomes in a given division. May be large for Ensembl Bacteria',
-        'url': '/info/genomes/division/{{division}}',
-        'method': 'GET',
-        'content_type': 'application/json',
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getInfoGenomesByTaxonomy': {
-        'doc' : 'Find information about all genomes beneath a given node of the taxonomy',
-        'url': '/info/genomes/taxonomy/{{division}}',
         'method': 'GET',
         'content_type': 'application/json',
     },    
@@ -309,13 +233,6 @@ ensembl_api_table = {
         'method': 'POST',
         'content_type': 'application/json',
         'post_parameters': ['ids']
-    },
-    #Specific of EnsEMBL genomes REST server
-    'getLookupByGenomeName': {
-        'doc' : 'Query for a named genome and retrieve the gene models',
-        'url': '/lookup/genome/{{name}}',
-        'method': 'GET',
-        'content_type': 'application/json',
     },
     'getLookupBySymbol': {
         'doc' : 'Find the species and database for a symbol in a linked external database',
@@ -445,7 +362,6 @@ ensembl_api_table = {
         'method': 'GET',
         'content_type': 'application/json'
     },
-    #Specific of EnsEMBL REST server ?
     'getSequenceByMultipleIds': {
         'doc' : 'Request multiple types of sequence by a stable identifier list',
         'url': '/sequence/id',
@@ -459,7 +375,6 @@ ensembl_api_table = {
         'method': 'GET',
         'content_type': 'application/json'
     },
-    #Specific of EnsEMBL REST server ?
     'getSequenceByMultipleRegions': {
         'doc' : 'Request multiple types of sequence by a list of regions',
         'url': '/sequence/region/{{species}}',
@@ -530,6 +445,94 @@ ensembl_api_table = {
     },
     
 }
+
+# ensembl api lookup table. Specific of EnsEMBL genomes REST server. Specify here 
+# functions defined in EnsemblGenomes REST server
+ensemblgenomes_api_table = {
+    # Comparative Genomics
+    'getGeneFamilyById': {
+        'doc' : 'Retrieves gene family information by ID',
+        'url': '/family/id/{{id}}',
+        'method': 'GET',
+        'content_type': 'application/json'
+    },
+    'getGeneFamilyMemberById': {
+        'doc' : 'Retrieves gene families to which a gene belongs',
+        'url': '/family/member/id/{{id}}',
+        'method': 'GET',
+        'content_type': 'application/json'
+    },
+    'getGeneFamilyMemberBySymbol': {
+        'doc' : 'Retrieves gene families to which a gene belongs',
+        'url': '/family/member/symbol/{{species}}/{{symbol}}',
+        'method': 'GET',
+        'content_type': 'application/json'
+    },
+    
+    
+    # Info
+    'getInfoEgVersion': {
+        'doc' : 'Returns the Ensembl Genomes version of the databases backing this service',
+        'url': '/info/eg_version',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },
+    'getInfoDivisions': {
+        'doc' : 'Get list of all Ensembl divisions for which information is available',
+        'url': '/info/divisions',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },    
+    'getInfoGenomesByName': {
+        'doc' : 'Find information about a given genome',
+        'url': '/info/genomes/{{name}}',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },    
+    'getInfoGenomes': {
+        'doc' : 'Find information about all genomes. Response may be very large',
+        'url': '/info/genomes',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },    
+    'getInfoGenomesByAccession': {
+        'doc' : 'Find information about genomes containing a specified INSDC accession',
+        'url': '/info/genomes/accession/{{division}}',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },    
+    'getInfoGenomesByAssembly': {
+        'doc' : 'Find information about a genome with a specified assembly',
+        'url': '/info/genomes/assembly/{{division}}',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },    
+    'getInfoGenomesByDivision': {
+        'doc' : 'Find information about all genomes in a given division. May be large for Ensembl Bacteria',
+        'url': '/info/genomes/division/{{division}}',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },    
+    'getInfoGenomesByTaxonomy': {
+        'doc' : 'Find information about all genomes beneath a given node of the taxonomy',
+        'url': '/info/genomes/taxonomy/{{division}}',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },
+
+    
+    # Lookup
+    'getLookupByGenomeName': {
+        'doc' : 'Query for a named genome and retrieve the gene models',
+        'url': '/lookup/genome/{{name}}',
+        'method': 'GET',
+        'content_type': 'application/json',
+    },
+}
+
+# Add default ensemblrest methods to ensembgenome methods
+for key, value in ensembl_api_table.iteritems():
+    ensemblgenomes_api_table[key] = value
 
 # http status codes
 ensembl_http_status_codes = {

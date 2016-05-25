@@ -34,7 +34,7 @@ import requests
 
 # import ensemblrest modules
 from . import __version__
-from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensembl_http_status_codes, ensembl_header, ensembl_content_type
+from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensemblgenomes_api_table, ensembl_http_status_codes, ensembl_header, ensembl_content_type
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
 
 # Logger instance
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 # EnsEMBL REST API object
 class EnsemblRest(object):
     # class initialisation function
-    def __init__(self, **kwargs):
+    def __init__(self, api_table=ensembl_api_table, **kwargs):
         # read args variable into object as session_args
         self.session_args = kwargs or {}
         
@@ -87,28 +87,28 @@ class EnsemblRest(object):
         # update headers as already exist within client
         self.session.headers.update(self.session_args.pop('headers'))
 
-        # iterate over ensembl_api_table keys and add key to class namespace
-        for fun_name in ensembl_api_table.keys():
+        # iterate over api_table keys and add key to class namespace
+        for fun_name in api_table.keys():
             #setattr(self, key, self.register_api_func(key))
             #Not as a class attribute, but a class method
-            self.__dict__[fun_name] = self.register_api_func(fun_name)
+            self.__dict__[fun_name] = self.register_api_func(fun_name, api_table)
             
             #Set __doc__ for generic class method
-            if ensembl_api_table[fun_name].has_key("doc"):
-                self.__dict__[fun_name].__doc__ = ensembl_api_table[fun_name]["doc"]
+            if api_table[fun_name].has_key("doc"):
+                self.__dict__[fun_name].__doc__ = api_table[fun_name]["doc"]
             
             #add function name to the class methods
             self.__dict__[fun_name].__name__ = fun_name
             
 
     # dynamic api registration function
-    def register_api_func(self, api_call):
-        return lambda **kwargs: self.call_api_func(api_call, **kwargs)
+    def register_api_func(self, api_call, api_table):
+        return lambda **kwargs: self.call_api_func(api_call, api_table, **kwargs)
 
     # dynamic api call function
-    def call_api_func(self, api_call, **kwargs):
-        # build url from ensembl_api_table kwargs
-        func = ensembl_api_table[api_call]
+    def call_api_func(self, api_call, api_table, **kwargs):
+        # build url from api_table kwargs
+        func = api_table[api_call]
         
         #Verify required variables and raise an Exception if needed
         mandatory_params = re.findall('\{\{(?P<m>[a-zA-Z_]+)\}\}', func['url'])
@@ -250,12 +250,12 @@ class EnsemblRest(object):
 # EnsEMBL Genome REST API object
 class EnsemblGenomeRest(EnsemblRest):
     # class initialisation function
-    def __init__(self, base_url=ensembl_genomes_url, **kwargs):
+    def __init__(self, api_table=ensemblgenomes_api_table, base_url=ensembl_genomes_url, **kwargs):
         #override default base_url
         kwargs["base_url"] = base_url
         
         #Call the Base Class init method
-        EnsemblRest.__init__(self, **kwargs)
+        EnsemblRest.__init__(self, api_table=api_table, **kwargs)
     
     
 #module end
