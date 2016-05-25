@@ -444,6 +444,86 @@ ensembl_api_table = {
         'post_parameters': ['ids']
     },
     
+    
+    # Variation GA4GH
+    'searchGA4GHCallSet': {
+        'doc': 'Return a list of sets of genotype calls for specific samples in GA4GH format',
+        'url': '/ga4gh/callsets/search',
+        'method': 'POST',
+        # Default ensembl content type
+        'post_parameters': ["variantSetId", "name", "pageToken", "pageSize"],
+    },
+    'getGA4GHCallSetById': {
+        'doc': "Return the GA4GH record for a specific CallSet given its identifier",
+        'url': "/ga4gh/callsets/{{id}}",
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'searchGA4GHDataset': {
+        'doc': 'Return a list of datasets in GA4GH format',
+        'url': '/ga4gh/datasets/search',
+        'method': 'POST',
+        # Default ensembl content type
+        'post_parameters': ["pageToken", "pageSize"],
+    },
+    'getGA4GHDatasetById': {
+        'doc': "Return the GA4GH record for a specific dataset given its identifier",
+        'url': "/ga4gh/datasets/{{id}}",
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'getGA4GHVariantsById': {
+        'doc': "Return the GA4GH record for a specific variant given its identifier",
+        'url': "/ga4gh/variants/{{id}}",
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'searchGA4GHVariants': {
+        'doc': 'Return variant call information in GA4GH format for a region on a reference sequence',
+        'url': '/ga4gh/variants/search',
+        'method': 'POST',
+        # Default ensembl content type
+        'post_parameters': ["variantSetId", "callSetIds", "referenceName", "start", "end", "pageToken", "pageSize"],
+    },
+    'searchGA4GHVariantsets': {
+        'doc': 'Return a list of variant sets in GA4GH format',
+        'url': '/ga4gh/variantsets/search',
+        'method': 'POST',
+        # Default ensembl content type
+        'post_parameters': ["datasetId", "pageToken", "pageSize"],
+    },
+    'getGA4GHVariantsetsById': {
+        'doc': "Return the GA4GH record for a specific VariantSet given its identifier",
+        'url': "/ga4gh/variantsets/{{id}}",
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'searchGA4GHReferences': {
+        'doc': 'Return a list of reference sequences in GA4GH format',
+        'url': '/ga4gh/references/search',
+        'method': 'POST',
+        # Default ensembl content type
+        'post_parameters': ["referenceSetId", "md5checksum", "accession", "pageToken", "pageSize"],
+    },
+    'getGA4GHReferencesById': {
+        'doc': "Return data for a specific reference in GA4GH format by id",
+        'url': "/ga4gh/references/{{id}}",
+        'method': 'GET',
+        # Default ensembl content type
+    },
+    'searchGA4GHReferenceSets': {
+        'doc': 'Return a list of reference sets in GA4GH format',
+        'url': '/ga4gh/referencesets/search',
+        'method': 'POST',
+        # Default ensembl content type
+        'post_parameters': ["accession", "pageToken", "pageSize"],
+    },
+    'getGA4GHReferenceSetsById': {
+        'doc': "Return data for a specific reference set in GA4GH format",
+        'url': "/ga4gh/referencesets/{{id}}",
+        'method': 'GET',
+        # Default ensembl content type
+    },
 }
 
 # ensembl api lookup table. Specific of EnsEMBL genomes REST server. Specify here 

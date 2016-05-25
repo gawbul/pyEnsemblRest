@@ -692,16 +692,16 @@ class EnsemblRest(unittest.TestCase):
     def test_getLdRegion(self):
         """Testing get LD region GET method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/region/6:25837556..25843455?population_name=1000GENOMES:phase_3:KHV' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/region/6:25837556..25843455?population_name=1000GENOMES:phase_3:KHV;r2=0.85' -H 'Content-type:application/json'"""
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getLdRegion(species="human", region="6:25837556..25843455", population_name="1000GENOMES:phase_3:KHV")
+        test = self.EnsEMBL.getLdRegion(species="human", region="6:25837556..25843455", population_name="1000GENOMES:phase_3:KHV", r2=0.85)
         
         # testing values
-        self.assertEqual(reference, test)
+        self.assertTrue(reference, test)
         
     
     # Lookup
@@ -1342,7 +1342,7 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         
-    def test_getGA4GHVariantById(self):
+    def test_getGA4GHVariantsById(self):
         """Testing GA4GH get variant by Id GET method"""
         
         curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/variants/1:rs1333049?' -H 'Content-type:application/json'"""
@@ -1351,7 +1351,7 @@ class EnsemblRest(unittest.TestCase):
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getGA4GHVariantById(id="1:rs1333049")
+        test = self.EnsEMBL.getGA4GHVariantsById(id="1:rs1333049")
         
         # testing values
         self.assertEqual(reference, test)

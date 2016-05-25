@@ -111,7 +111,7 @@ class EnsemblRest(object):
         func = api_table[api_call]
         
         #Verify required variables and raise an Exception if needed
-        mandatory_params = re.findall('\{\{(?P<m>[a-zA-Z_]+)\}\}', func['url'])
+        mandatory_params = re.findall('\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', func['url'])
         
         for param in mandatory_params:
             if not kwargs.has_key(param):
@@ -160,8 +160,9 @@ class EnsemblRest(object):
             
             # pass key=value in POST data from kwargs
             for key in func['post_parameters']:
-                data[key] = kwargs[key]
-                del(kwargs[key])
+                if kwargs.has_key(key):
+                    data[key] = kwargs[key]
+                    del(kwargs[key])
                 
             logger.debug("Submitting a POST request. url = '%s', headers = %s, params = %s, data = %s" %(url, {"Content-Type": content_type}, kwargs, data))
             # post parameters are load as POST data, other parameters are url parameters as GET requests
