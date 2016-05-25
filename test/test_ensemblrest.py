@@ -626,7 +626,7 @@ class EnsemblRest(unittest.TestCase):
         except AssertionError, message:
             # sometimes this test can fail. In such case, i log the error
             logger.error(message)
-            logger.critical("Sometimes 'test_getInfoSpecies' fails")
+            logger.error("Sometimes 'test_getInfoSpecies' fails. Why?")
         
     def test_getInfoVariation(self):
         """Testing Info Variation GET method"""
@@ -1294,13 +1294,145 @@ class EnsemblGenomeRest(unittest.TestCase):
         """Sleep a while before doing next request"""
         time.sleep(0.2)
 
-    #TODO
-#    print ensGenomeRest.getGeneFamilyById(id="MF_01687", compara="bacteria")
-#    print ensGenomeRest.getGeneFamilyMemberById(id="b0344", compara="bacteria")
-#    print ensGenomeRest.getGeneFamilyMemberBySymbol(symbol="lacZ", species="escherichia_coli_str_k_12_substr_mg1655", compara="bacteria")
-#    print ensGenomeRest.getInfoEgVersion()
-#    print ensGenomeRest.getInfoDivisions()
-#    print ensGenomeRest.getInfoGenomesByName(name="campylobacter_jejuni_subsp_jejuni_bh_01_0142")
+    def test_getGeneFamilyById(self):
+        """Testing genefamily by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/family/id/MF_01120?compara=bacteria' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGeneFamilyById(id="MF_01120", compara="bacteria")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGeneFamilyMemberById(self):
+        """Testing genefamily member by id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/family/member/id/STK_01900?compara=bacteria' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGeneFamilyMemberById(id="STK_01900", compara="bacteria")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGeneFamilyMemberBySymbol(self):
+        """Testing genefamily member by symbol"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/family/member/symbol/sulfolobus_tokodaii_str_7/lysK?compara=bacteria' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGeneFamilyMemberBySymbol(symbol="lysK", species="sulfolobus_tokodaii_str_7", compara="bacteria")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoEgVersion(self):
+        """Testing EgVersion GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/info/eg_version?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoEgVersion()
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoDivisions(self):
+        """Testing Info Divisions GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/info/divisions?' -H 'Content-type:application/json'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoDivisions()
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoGenomesByName(self):
+        """Testing Info Genomes by Name GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/info/genomes/campylobacter_jejuni_subsp_jejuni_bh_01_0142?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoGenomesByName(name="campylobacter_jejuni_subsp_jejuni_bh_01_0142")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoGenomesByAccession(self): 
+        """Testing Info Genomes by Accession GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/info/genomes/accession/U00096?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoGenomesByAccession(division="U00096")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoGenomesByAssembly(self):
+        """Testing Info Genomes by Assembly GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/info/genomes/assembly/GCA_000005845?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoGenomesByAssembly(division="GCA_000005845")
+        
+        # testing values
+        self.assertEqual(reference, test)
+    
+    def test_getInfoGenomesByDivision(self):
+        """Testing Info Genomes by Division GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoGenomesByDivision(division="EnsemblPlants")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getInfoGenomesByTaxonomy(self):
+        """Testing Info Genomes by Taxonomy GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensemblgenomes.org/info/genomes/taxonomy/Arabidopsis?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoGenomesByTaxonomy(division="Arabidopsis")
+        
+        # testing values
+        self.assertEqual(reference, test)
 
 if __name__ == "__main__":
     unittest.main()

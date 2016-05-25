@@ -14,6 +14,27 @@ pyEnsemblRest
 
 .. image:: https://img.shields.io/github/downloads/pyOpenSci/pyEnsemblRest/total.svg?maxAge=2592000   :target: https://github.com/pyOpenSci/pyEnsemblRest
 
+License
+=======
+
+pyEnsemblRest - A wrapper for the EnsEMBL REST API
+
+Copyright (C) 2013-2016, Steve Moss
+
+pyEnsemblRest is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+pyEnsemblRest is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with pyEnsemblRest.  If not, see <http://www.gnu.org/licenses/>.
+
+
 Installation
 ============
 .. code:: bash
@@ -60,7 +81,7 @@ You may also provide proxy server settings in the form of a dict, as follows:
 
   from ensemblrest import EnsemblRest
   # setup rest object to point to a proxy server
-  ensRest = EnsemblRest(proxies={'http':'proxy.addres.com:3128', 'https':'proxy.address.com:3128'})
+  ensRest = EnsemblRest(proxies={'http':'proxy.address.com:3128', 'https':'proxy.address.com:3128'})
 
 EnsEMBL has a rate-limit policy to deal with requests. You can do up to 15 requests per second. You could wait a little during your requests:
 
@@ -111,7 +132,7 @@ POST endpoints can be used as the GET endpoints, the only difference is that the
 
   seqs = ensRest.getSequenceByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
 
-where the example value { "ids" : ["ENSG00000157764", "ENSG00000248378" ] } is converted in the non-positional argument ids=["ENSG00000157764", "ENSG00000248378" ]. As the previous example, we can add optional parameters:
+where the example value ``{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }`` is converted in the non-positional argument ``ids=["ENSG00000157764", "ENSG00000248378" ]``. As the previous example, we can add optional parameters:
 
 .. code:: python
 
@@ -136,7 +157,7 @@ is supported in the EnsEMBL endpoint description.
 Methods list
 ------------
 
-Here is a list of all methods defined. Methods called by ensRest object are specific to ensembl_ rest server, while methods called via ensGenomeRest are specific of ensemblgenomes_ rest server.
+Here is a list of all methods defined. Methods called by ``ensRest`` instance are specific to ensembl_ rest server, while methods called via ``ensGenomeRest`` instance are specific of ensemblgenomes_ rest server.
 
 To access the *Archive* endpoints you can use the following methods:
 
@@ -267,7 +288,7 @@ To access the *Transcript Haplotypes* endpoints you can use the following method
 
 .. code:: python
 
-print ensRest.getTranscripsHaplotypes(species="homo_sapiens", id="ENST00000288602")
+  print ensRest.getTranscripsHaplotypes(species="homo_sapiens", id="ENST00000288602")
 
 To access the *VEP* endpoints you can use the following methods:
 
