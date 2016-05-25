@@ -155,7 +155,24 @@ print ensRest.getVariantConsequencesByMultipleRegions(species="human", variants=
 
 # Variation
 print ensRest.getVariationById(id="rs56116432", species="homo_sapiens")
+sleep(1)
 print ensRest.getVariationByMultipleIds(ids=["rs56116432", "COSM476" ], species="homo_sapiens")
 
-
+# Variation GA4GH
+print ensRest.searchGA4GHCallSet(variantSetId=1, pageSize=2)
+print ensRest.getGA4GHCallSetById(id="1:NA19777")
+sleep(1)
+print ensRest.searchGA4GHDataset(pageSize=3)
+print ensRest.getGA4GHDatasetById(id="6e340c4d1e333c7a676b1710d2e3953c")
+print ensRest.getGA4GHVariantsById(id="1:rs1333049")
+sleep(1)
+print ensRest.searchGA4GHVariants(variantSetId=1, referenceName=22, start=17190024, end=17671934, pageToken="", pageSize=1)
+print ensRest.searchGA4GHVariantsets(datasetId="6e340c4d1e333c7a676b1710d2e3953c", pageToken="", pageSize=2)
+print ensRest.getGA4GHVariantsetsById(id=1)
+sleep(1)
+print ensRest.searchGA4GHReferences(referenceSetId="GRCh38", pageSize=10)
+print ensRest.getGA4GHReferencesById(id="9489ae7581e14efcad134f02afafe26c")
+print ensRest.searchGA4GHReferenceSets()
+sleep(1)
+print ensRest.getGA4GHReferenceSetsById(id="GRCh38")
 

@@ -300,12 +300,29 @@ To access the *VEP* endpoints you can use the following methods:
   print ensRest.getVariantConsequencesByRegion(species='human', region='9:22125503-22125502:1', allele='C')
   print ensRest.getVariantConsequencesByMultipleRegions(species="human", variants=["21 26960070 rs116645811 G A . . .", "21 26965148 rs1135638 G A . . ." ] )
 
-To access the *Variation* endpoints you can use the following method:
+To access the *Variation* endpoints you can use the following methods:
 
 .. code:: python
 
   print ensRest.getVariationById(id="rs56116432", species="homo_sapiens")
   print ensRest.getVariationByMultipleIds(ids=["rs56116432", "COSM476" ], species="homo_sapiens")
+
+To access the *Variation GA4GH* endpoints you can use the following methods:
+
+.. code:: python
+
+  print ensRest.searchGA4GHCallSet(variantSetId=1, pageSize=2)
+  print ensRest.getGA4GHCallSetById(id="1:NA19777")
+  print ensRest.searchGA4GHDataset(pageSize=3)
+  print ensRest.getGA4GHDatasetById(id="6e340c4d1e333c7a676b1710d2e3953c")
+  print ensRest.getGA4GHVariantsById(id="1:rs1333049")
+  print ensRest.searchGA4GHVariants(variantSetId=1, referenceName=22, start=17190024, end=17671934, pageToken="", pageSize=1)
+  print ensRest.searchGA4GHVariantsets(datasetId="6e340c4d1e333c7a676b1710d2e3953c", pageToken="", pageSize=2)
+  print ensRest.getGA4GHVariantsetsById(id=1)
+  print ensRest.searchGA4GHReferences(referenceSetId="GRCh38", pageSize=10)
+  print ensRest.getGA4GHReferencesById(id="9489ae7581e14efcad134f02afafe26c")
+  print ensRest.searchGA4GHReferenceSets()
+  print ensRest.getGA4GHReferenceSetsById(id="GRCh38")
 
 
 .. _ensembl: http://rest.ensembl.org/
