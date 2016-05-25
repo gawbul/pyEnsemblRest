@@ -57,6 +57,9 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
+# Wait some time before next request
+WAIT = 0.5
+
 def launch(cmd):
     """calling a cmd with subprocess"""
     
@@ -208,7 +211,7 @@ class EnsemblRest(unittest.TestCase):
         
     def tearDown(self):
         """Sleep a while before doing next request"""
-        time.sleep(0.2)
+        time.sleep(WAIT)
         
     def test_setHeaders(self):
         """Testing EnsemblRest with no headers provided"""
@@ -1281,6 +1284,179 @@ class EnsemblRest(unittest.TestCase):
     
     
     # Variation GA4GH
+    def test_searchGA4GHCallSet(self):
+        """Testing GA4GH callset search POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/callsets/search' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "variantSetId": 1, "pageSize": 2  }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHCallSet(variantSetId=1, pageSize=2)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGA4GHCallSetById(self):
+        """Testing get GA4GH callset by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/callsets/1:NA19777?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHCallSetById(id="1:NA19777")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_searchGA4GHDataset(self):
+        """Testing GA4GH search dataset POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/datasets/search' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "pageSize": 3 }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHDataset(pageSize=3)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGA4GHDatasetById(self):
+        """Testing GA4GH get dataset by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/datasets/6e340c4d1e333c7a676b1710d2e3953c?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHDatasetById(id="6e340c4d1e333c7a676b1710d2e3953c")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGA4GHVariantById(self):
+        """Testing GA4GH get variant by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/variants/1:rs1333049?' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHVariantById(id="1:rs1333049")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_searchGA4GHVariants(self):
+        """Testing GA4GH search variants POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/variants/search' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "variantSetId": 1, "referenceName": 22,"start": 17190024 ,"end":  17671934 ,  "pageToken":"", "pageSize": 1 }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHVariants(variantSetId=1, referenceName=22, start=17190024, end=17671934, pageToken="", pageSize=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_searchGA4GHVariantsets(self):
+        """Testing GA4GH search variantset POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/variantsets/search' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "datasetId": "6e340c4d1e333c7a676b1710d2e3953c",    "pageToken": "", "pageSize": 2 }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHVariantsets(datasetId="6e340c4d1e333c7a676b1710d2e3953c", pageToken="", pageSize=2)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGA4GHVariantsetsById(self):
+        """Testing GA4GH get variantset by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/variantsets/1?' -H 'Content-type:application/json'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHVariantsetsById(id=1)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_searchGA4GHReferences(self):
+        """Testing GA4GH search references POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/references/search' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{ "referenceSetId": "GRCh38", "pageSize": 10 }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHReferences(referenceSetId="GRCh38", pageSize=10)
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGA4GHReferencesById(self):
+        """Testing GA4GH get references by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/references/9489ae7581e14efcad134f02afafe26c?' -H 'Content-type:application/json'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHReferencesById(id="9489ae7581e14efcad134f02afafe26c")
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_searchGA4GHReferenceSets(self):
+        """Testing GA4GH search reference sets POST method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/referencesets/search' -H 'Content-type:application/json' \
+-H 'Accept:application/json' -X POST -d '{   }'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHReferenceSets()
+        
+        # testing values
+        self.assertEqual(reference, test)
+        
+    def test_getGA4GHReferenceSetsById(self):
+        """Testing GA4GH get reference set by Id GET method"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ga4gh/referencesets/GRCh38?' -H 'Content-type:application/json'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+      
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHReferenceSetsById(id="GRCh38")
+        
+        # testing values
+        self.assertEqual(reference, test)
 
 
 class EnsemblGenomeRest(unittest.TestCase):
@@ -1292,7 +1468,7 @@ class EnsemblGenomeRest(unittest.TestCase):
         
     def tearDown(self):
         """Sleep a while before doing next request"""
-        time.sleep(0.2)
+        time.sleep(WAIT)
 
     def test_getGeneFamilyById(self):
         """Testing genefamily by id GET method"""
