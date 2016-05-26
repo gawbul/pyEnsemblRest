@@ -38,7 +38,7 @@ setup(
     include_package_data=True,
 
     # Package dependencies.
-    install_requires=['requests>=1.0.0, <2.0.0'],
+    install_requires=['requests>=1.0.0'],
 
     # testing modules
     test_suite = "test",
