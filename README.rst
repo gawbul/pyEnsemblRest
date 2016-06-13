@@ -4,16 +4,34 @@ pyEnsemblRest
 
 ``pyEnsemblRest`` is a simple Python wrapper around the EnsEMBL REST API
 
-.. image:: https://travis-ci.org/pyOpenSci/pyEnsemblRest.svg?branch=master :target: https://travis-ci.org/pyOpenSci/pyEnsemblRest :alt: Build Status
+.. image:: https://travis-ci.org/pyOpenSci/pyEnsemblRest.svg?branch=master
+    :target: https://travis-ci.org/pyOpenSci/pyEnsemblRest
+    :alt: Build Status
 
-.. image:: https://img.shields.io/coveralls/pyOpenSci/pyEnsemblRest.svg?maxAge=2592000   :target: https://img.shields.io/pypi/v/pyensemblrest.svg :alt: Code Coverage
+.. image:: https://coveralls.io/repos/github/pyOpenSci/pyEnsemblRest/badge.svg?branch=master
+    :target: https://coveralls.io/github/pyOpenSci/pyEnsemblRest?branch=master
+    :alt: Code Coverage
 
-.. image:: https://img.shields.io/gitter/room/pyOpenSci/pyEnsemblRest.js.svg?maxAge=2592000   :target: https://gitter.im/pyOpenSci/pyEnsemblRest :alt: Gitter Chat
+.. image:: https://img.shields.io/scrutinizer/g/pyOpenSci/pyEnsemblRest.svg?maxAge=2592000
+    :target: https://img.shields.io/scrutinizer/g/pyOpenSci/pyEnsemblRest.svg?maxAge=2592000
+    :alt: Code Quality
 
-.. image:: https://img.shields.io/pypi/v/pyensemblrest.svg?maxAge=2592000   :target: https://pypi.python.org/pypi/pyensemblrest
+.. image:: https://img.shields.io/gitter/room/pyOpenSci/pyEnsemblRest.js.svg?maxAge=2592000
+    :target: https://gitter.im/pyOpenSci/pyEnsemblRest
+    :alt: Gitter Chat
 
-.. image:: https://img.shields.io/github/downloads/pyOpenSci/pyEnsemblRest/total.svg?maxAge=2592000   :target: https://github.com/pyOpenSci/pyEnsemblRest
+.. image:: https://img.shields.io/pypi/v/pyensemblrest.svg?maxAge=2592000
+    :target: https://pypi.python.org/pypi/pyensemblrest
+    :alt: PyPi Package
 
+.. image:: https://img.shields.io/github/downloads/pyOpenSci/pyEnsemblRest/total.svg?maxAge=2592000
+    :target: https://github.com/pyOpenSci/pyEnsemblRest
+    :alt: GitHub Downloads
+
+.. image:: https://img.shields.io/pypi/dd/pyensemblrest.svg?maxAge=2592000
+    :target: https://img.shields.io/pypi/dd/pyensemblrest.svg?maxAge=2592000
+    :alt: PyPi Downloads
+    
 License
 =======
 
