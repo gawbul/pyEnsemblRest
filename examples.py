@@ -91,12 +91,19 @@ print ensRest.getInfoSoftware()
 print ensRest.getInfoSpecies()
 sleep(1) # sleep for a second so we don't get rate-limited
 
+# Linkage Disequilibrium
+print ensRest.getLdId(species="human", id="rs1042779", population_name="1000GENOMES:phase_3:KHV", window_size=500, d_prime=1.0)
+print ensRest.getLdPairwise(species="human", id1="rs6792369", id2="rs1042779")
+print ensRest.getLdRegion(species="human", region="6:25837556..25843455", population_name="1000GENOMES:phase_3:KHV")
+sleep(1)
+
 # Lookup
 print ensRest.getLookupById(id='ENSG00000157764')
+print ensGenomeRest.getLookupByGenomeName(name="campylobacter_jejuni_subsp_jejuni_bh_01_0142")
 print ensRest.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
-print ensRest.getLookupBySpeciesSymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
+print ensRest.getLookupBySymbol(species="homo_sapiens", symbol="BRCA2", expand=1)
 sleep(1)
-print ensRest.getLookupByMultipleSpeciesSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
+print ensRest.getLookupByMultipleSymbols(species="homo_sapiens", symbols=["BRCA2", "BRAF"])
 
 # Mapping
 print ensRest.getMapCdnaToRegion(id='ENST00000288602', region='100..300')
@@ -135,6 +142,9 @@ print ensRest.getSequenceByRegion(species='human', region='X:1000000..1000100')
 print ensRest.getSequenceByMultipleRegions(species="homo_sapiens", regions=["X:1000000..1000100:1", "ABBA01004489.1:1..100"])
 sleep(1)
 
+# Transcript Haplotypes
+print ensRest.getTranscripsHaplotypes(species="homo_sapiens", id="ENST00000288602")
+
 # VEP
 print ensRest.getVariantConsequencesByHGVSnotation(species="human", hgvs_notation="AGT:c.803T>C")
 print ensRest.getVariantConsequencesById(species='human', id='COSM476')
@@ -144,7 +154,25 @@ print ensRest.getVariantConsequencesByRegion(species='human', region='9:22125503
 print ensRest.getVariantConsequencesByMultipleRegions(species="human", variants=["21 26960070 rs116645811 G A . . .", "21 26965148 rs1135638 G A . . ." ] )
 
 # Variation
-print ensRest.getVariationBySpeciesId(id="rs56116432", species="homo_sapiens")
+print ensRest.getVariationById(id="rs56116432", species="homo_sapiens")
+sleep(1)
+print ensRest.getVariationByMultipleIds(ids=["rs56116432", "COSM476" ], species="homo_sapiens")
 
-
+# Variation GA4GH
+print ensRest.searchGA4GHCallSet(variantSetId=1, pageSize=2)
+print ensRest.getGA4GHCallSetById(id="1:NA19777")
+sleep(1)
+print ensRest.searchGA4GHDataset(pageSize=3)
+print ensRest.getGA4GHDatasetById(id="6e340c4d1e333c7a676b1710d2e3953c")
+print ensRest.getGA4GHVariantsById(id="1:rs1333049")
+sleep(1)
+print ensRest.searchGA4GHVariants(variantSetId=1, referenceName=22, start=17190024, end=17671934, pageToken="", pageSize=1)
+print ensRest.searchGA4GHVariantsets(datasetId="6e340c4d1e333c7a676b1710d2e3953c", pageToken="", pageSize=2)
+print ensRest.getGA4GHVariantsetsById(id=1)
+sleep(1)
+print ensRest.searchGA4GHReferences(referenceSetId="GRCh38", pageSize=10)
+print ensRest.getGA4GHReferencesById(id="9489ae7581e14efcad134f02afafe26c")
+print ensRest.searchGA4GHReferenceSets()
+sleep(1)
+print ensRest.getGA4GHReferenceSetsById(id="GRCh38")
 
