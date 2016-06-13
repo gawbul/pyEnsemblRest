@@ -37,6 +37,22 @@ along with pyEnsemblRest.  If not, see <http://www.gnu.org/licenses/>.
 
 Installation
 ============
+
+Using pip
+---------
+
+Simply type:
+
+.. code:: bash
+
+  pip install pyensemblrest
+
+
+From source
+-----------
+
+Clone the pyEnsemblRest then install package from source:
+
 .. code:: bash
 
   git clone https://github.com/pyOpenSci/pyEnsemblRest.git

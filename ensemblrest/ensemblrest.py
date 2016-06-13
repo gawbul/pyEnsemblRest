@@ -27,6 +27,7 @@
 
 # import system modules
 import re
+import math
 import json
 import time
 import logging
@@ -51,6 +52,13 @@ class EnsemblRest(object):
         self.reqs_per_sec = 15
         self.req_count = 0
         self.last_req = 0
+        self.wall_time = 1
+        
+        # get rate limit parameters, if provided
+        self.rate_reset = None
+        self.rate_limit = None
+        self.rate_remaining = None
+        self.retry_after = None
         
         # initialise default values
         default_base_url = ensembl_default_url
@@ -141,14 +149,6 @@ class EnsemblRest(object):
             content_type = kwargs["content_type"]
             del(kwargs["content_type"])
         
-        #Evaluating the numer of request in a second (according to EnsEMBL rest specification)
-        if self.req_count >= self.reqs_per_sec:
-            delta = time.time() - self.last_req
-            if delta < 1:
-                logger.debug("waiting %s" %(delta))
-                time.sleep(1 - delta)
-            self.req_count = 0
-        
         #check the request type (GET or POST?)
         if func['method'] == 'GET':
             logger.debug("Submitting a GET request. url = '%s', headers = %s, params = %s" %(url, {"Content-Type": content_type}, kwargs))
@@ -188,7 +188,7 @@ class EnsemblRest(object):
         self.last_response = resp
         
         # initialize some values. Check if I'm rate limited
-        rate_reset, rate_limit, rate_remaining, retry_after = self.__get_rate_limit(resp.headers)
+        self.rate_reset, self.rate_limit, self.rate_remaining, self.retry_after = self.__get_rate_limit(resp.headers)
         
         # default status code
         message = ensembl_http_status_codes[resp.status_code][1]
@@ -206,7 +206,7 @@ class EnsemblRest(object):
             if resp.status_code == 429:
                 ExceptionType = EnsemblRestRateLimitError
 
-            raise ExceptionType(message, error_code=resp.status_code, rate_reset=rate_reset, rate_limit=rate_limit, rate_remaining=rate_remaining, retry_after=retry_after)
+            raise ExceptionType(message, error_code=resp.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
 
         #handle content in different way relying on content-type
         if content_type == 'application/json':
@@ -215,6 +215,37 @@ class EnsemblRest(object):
         else:
             #default 
             content = resp.text
+            
+        # eval if change reqs_per_sec
+        if self.rate_remaining is not None and self.rate_reset is not None:
+            # calculate the remaining requests per seconds
+            reqs_per_sec = float(self.rate_remaining) / float(self.rate_reset)
+            
+            # reqs_per_sec could be 15 at max
+            if reqs_per_sec >= 15:
+                reqs_per_sec = 15
+                
+            # debug
+            if reqs_per_sec <> self.reqs_per_sec:
+                logger.debug("Setting adaptative request per seconds to %s" %(reqs_per_sec))
+                self.reqs_per_sec = reqs_per_sec
+                
+        # Evaluating the numer of request in a second (according to EnsEMBL rest specification)
+        if self.req_count >= self.reqs_per_sec:
+            delta = time.time() - self.last_req
+            self.wall_time = 1
+            
+            # evaluating if reqs_per_sec is less than 1
+            if self.reqs_per_sec < 1:
+                self.wall_time = int(math.ceil(self.wall_time / self.reqs_per_sec))
+
+            # sleep upto wall_time
+            if delta < self.wall_time:
+                to_sleep = self.wall_time - delta
+                logger.debug("waiting %s" %(to_sleep))
+                time.sleep(to_sleep)
+                
+            self.req_count = 0
             
         return content
         

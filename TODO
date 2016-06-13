@@ -1,4 +1,5 @@
 
-* Implement Variation GA4GH methods
-* Implement missing methods
-* Test ensemblgenomes methods
+* More useful message on EnsemblRestRateLimitError exception
+* Adaptative limiting in case of multiple clients requests:
+  - check the proportion of remaining requests and remaining time
+* Deal with LD problems?
