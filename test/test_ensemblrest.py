@@ -325,7 +325,65 @@ class EnsemblRest(unittest.TestCase):
         # call the new function and deal with the exception
         self.assertRaises(NotImplementedError, self.EnsEMBL.notImplemented, id='ENSG00000157764') 
     
-    
+    def test_SomethingBad(self):
+        """Deal with the {"error":"something bad has happened"} message"""
+        
+        # get the curl cmd from ensembl site:
+        curl_cmd = "curl 'http://rest.ensembl.org/archive/id/ENSG00000157764?' -H 'Content-type:application/json'"
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)        
+        
+        # get a request
+        self.EnsEMBL.getArchiveById(id="ENSG00000157764")
+        
+        # retrieve last_reponse
+        response = self.EnsEMBL.last_response
+        
+        # create a fake request.Response class
+        class FakeResponse():
+            def __init__(self, response):
+                self.headers = response.headers
+                self.status_code = 400
+                self.text = """{"error":"something bad has happened"}"""
+                self.url = response.url
+                
+        #instantiate a fake response
+        fakeResponse = FakeResponse(response)
+        test = self.EnsEMBL.parseResponse(fakeResponse)
+        
+        # testing values
+        self.assertDictEqual(reference, test)
+        
+    def test_LDFeatureContainerAdaptor(self):
+        """Deal with the {"error":"Something went wrong while fetching from LDFeatureContainerAdaptor"} message"""
+        
+        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/pairwise/rs6792369/rs1042779?population_name=1000GENOMES:phase_3:KHV;r2=0.85' -H 'Content-type:application/json'"""
+        
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+        
+        # get a request
+        self.EnsEMBL.getLdPairwise(species="human", id1="rs6792369", id2="rs1042779", population_name="1000GENOMES:phase_3:KHV", r2=0.85)
+        
+        # retrieve last_reponse
+        response = self.EnsEMBL.last_response
+        
+        # create a fake request.Response class
+        class FakeResponse():
+            def __init__(self, response):
+                self.headers = response.headers
+                self.status_code = 400
+                self.text = """{"error":"Something went wrong while fetching from LDFeatureContainerAdaptor"}"""
+                self.url = response.url
+                
+        #instantiate a fake response
+        fakeResponse = FakeResponse(response)
+        test = self.EnsEMBL.parseResponse(fakeResponse)
+        
+        # testing values
+        self.assertDictEqual(reference, test)
+        
     # Archive
     def test_getArchiveById(self):
         """Test archive GET endpoint"""
