@@ -93,7 +93,15 @@ def jsonFromCurl(curl_cmd):
         result = launch(curl_cmd)
         
         # load it as a dictionary
-        data = json.loads(result)
+        try:
+            data = json.loads(result)
+            
+        except ValueError, message:
+            logger.warn("Curl command failed: %s" %(message))
+            time.sleep(WAIT*10)
+            
+            #next request
+            continue
         
         if type(data) == types.DictionaryType:
             if data.has_key("error"):
@@ -260,7 +268,7 @@ class EnsemblRest(unittest.TestCase):
         #only 15 request per seconds (that is 55000 request in a hour / 3600 seconds).
         
         #cases are X-RateLimit-Remaining requests and X-RateLimit-Reset and wall_time
-        cases = ((10000, 2000, 1), (1000, 2000, 2))
+        cases = ((10000, 200, 1), (10000, 2000, 1), (1000, 2000, 2))
         
         # get a request
         self.EnsEMBL.getArchiveById(id="ENSG00000157764")
@@ -284,6 +292,10 @@ class EnsemblRest(unittest.TestCase):
             
             # compute requests per seconds
             reqs_per_sec = float(remaining) / reset
+            
+            # maximum value is 15
+            if reqs_per_sec > 15:
+                reqs_per_sec = 15
             
             # eval adaptative requests
             self.assertEqual(reqs_per_sec, self.EnsEMBL.reqs_per_sec)
@@ -682,11 +694,13 @@ class EnsemblRest(unittest.TestCase):
             # checking equality, and I need to ensure that dictionaries have the same keys and values
             self.assertTrue(compareDict(reference, test))
         
-        #TODO: why this test fail sometimes?
+        # The transitory failure seems to be related to a misconfiguration of ensembl
+        # rest service. In such cases is better to inform dev<at>ensembl.org and report
+        # such issues
         except AssertionError, message:
             # sometimes this test can fail. In such case, i log the error
             logger.error(message)
-            logger.error("Sometimes 'test_getInfoSpecies' fails. Why?")
+            logger.error("Sometimes 'test_getInfoSpecies' fails. This could be a transitory problem on EnsEMBL REST service?")
         
     def test_getInfoVariation(self):
         """Testing Info Variation GET method"""

@@ -1,5 +1,5 @@
 
-* Deal with LD problems?
+* Deal with transient problems
 ======================================================================
 ERROR: test_getLdPairwise (test.test_ensemblrest.EnsemblRest)
 Testing get LD pairwise GET method

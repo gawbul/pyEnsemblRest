@@ -133,7 +133,7 @@ class EnsemblRest(unittest.TestCase):
         # get a request (GET)
         self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveById, id="ENSG00000157764")
         self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveByMultipleIds, id=["ENSG00000157764", "ENSG00000248378"])
-        
+
 
 if __name__ == "__main__":
     unittest.main()

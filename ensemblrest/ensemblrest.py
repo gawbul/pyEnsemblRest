@@ -231,7 +231,7 @@ class EnsemblRest(object):
             reqs_per_sec = float(self.rate_remaining) / float(self.rate_reset)
             
             # reqs_per_sec could be 15 at max
-            if reqs_per_sec >= 15:
+            if reqs_per_sec > 15:
                 reqs_per_sec = 15
                 
             # debug
