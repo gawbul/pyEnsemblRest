@@ -124,7 +124,7 @@ class EnsemblRest(object):
         for param in mandatory_params:
             if not kwargs.has_key(param):
                 logger.critical("'%s' param not specified. Mandatory params are %s" %(param, mandatory_params))
-                raise Exception, "mandatory param '%s' not specified" %(param)
+                raise Exception("mandatory param '%s' not specified" %(param))
             else:
                 logger.debug("Mandatory param %s found" %(param))
         
@@ -152,7 +152,11 @@ class EnsemblRest(object):
         #check the request type (GET or POST?)
         if func['method'] == 'GET':
             logger.debug("Submitting a GET request. url = '%s', headers = %s, params = %s" %(url, {"Content-Type": content_type}, kwargs))
-            resp = self.session.get(url, headers={"Content-Type": content_type}, params=kwargs)
+            try:
+                resp = self.session.get(url, headers={"Content-Type": content_type}, params=kwargs)
+            
+            except requests.ConnectionError, message:
+                raise EnsemblRestServiceUnavailable(message)
             
         elif func['method'] == 'POST':
             # in a POST request, separate post parameters from other parameters
@@ -165,11 +169,16 @@ class EnsemblRest(object):
                     del(kwargs[key])
                 
             logger.debug("Submitting a POST request. url = '%s', headers = %s, params = %s, data = %s" %(url, {"Content-Type": content_type}, kwargs, data))
-            # post parameters are load as POST data, other parameters are url parameters as GET requests
-            resp = self.session.post(url, headers={"Content-Type": content_type}, data=json.dumps(data), params=kwargs)
+            
+            try:
+                # post parameters are load as POST data, other parameters are url parameters as GET requests
+                resp = self.session.post(url, headers={"Content-Type": content_type}, data=json.dumps(data), params=kwargs)
+                
+            except requests.ConnectionError, message:
+                raise EnsemblRestServiceUnavailable(message)
                 
         else:
-            raise NotImplementedError, "Method '%s' not yet implemented" %(func['method'])
+            raise NotImplementedError("Method '%s' not yet implemented" %(func['method']))
             
         #call response and return content
         return self.parseResponse(resp, content_type)

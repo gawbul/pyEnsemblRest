@@ -721,13 +721,13 @@ class EnsemblRest(unittest.TestCase):
     def test_getLdId(self):
         """Testing get LD ID GET method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/rs1042779?population_name=1000GENOMES:phase_3:KHV;window_size=500;d_prime=1.0' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/rs1042779?population_name=1000GENOMES:phase_3:KHV;window_size=10;d_prime=1.0' -H 'Content-type:application/json'"""
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getLdId(species="human", id="rs1042779", population_name="1000GENOMES:phase_3:KHV", window_size=500, d_prime=1.0)
+        test = self.EnsEMBL.getLdId(species="human", id="rs1042779", population_name="1000GENOMES:phase_3:KHV", window_size=10, d_prime=1.0)
         
         # testing values
         try:
@@ -742,13 +742,13 @@ class EnsemblRest(unittest.TestCase):
     def test_getLdPairwise(self):
         """Testing get LD pairwise GET method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/pairwise/rs6792369/rs1042779?' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/pairwise/rs6792369/rs1042779?population_name=1000GENOMES:phase_3:KHV;r2=0.85' -H 'Content-type:application/json'"""
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getLdPairwise(species="human", id1="rs6792369", id2="rs1042779")
+        test = self.EnsEMBL.getLdPairwise(species="human", id1="rs6792369", id2="rs1042779", population_name="1000GENOMES:phase_3:KHV", r2=0.85)
         
         # testing values
         try:
@@ -763,13 +763,13 @@ class EnsemblRest(unittest.TestCase):
     def test_getLdRegion(self):
         """Testing get LD region GET method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/region/6:25837556..25843455?population_name=1000GENOMES:phase_3:KHV;r2=0.85' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/region/6:25837556..25843455?population_name=1000GENOMES:phase_3:KHV;r2=0.85:d_prime=1.0' -H 'Content-type:application/json'"""
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getLdRegion(species="human", region="6:25837556..25843455", population_name="1000GENOMES:phase_3:KHV", r2=0.85)
+        test = self.EnsEMBL.getLdRegion(species="human", region="6:25837556..25843455", population_name="1000GENOMES:phase_3:KHV", r2=0.85, d_prime=1.0)
         
         # testing values
         try:

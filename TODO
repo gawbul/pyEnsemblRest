@@ -1,5 +1,36 @@
 
-* More useful message on EnsemblRestRateLimitError exception
-* Adaptative limiting in case of multiple clients requests:
-  - check the proportion of remaining requests and remaining time
 * Deal with LD problems?
+======================================================================
+ERROR: test_getLdPairwise (test.test_ensemblrest.EnsemblRest)
+Testing get LD pairwise GET method
+----------------------------------------------------------------------
+Traceback (most recent call last):
+File "test/test_ensemblrest.py", line 745, in test_getLdPairwise
+  test = self.EnsEMBL.getLdPairwise(species="human", id1="rs6792369", id2="rs1042779", population_name="1000GENOMES:phase_3:KHV", d_prime=1.0, r2=0.85)
+File "ensemblrest/ensemblrest.py", line 114, in <lambda>
+  return lambda **kwargs: self.call_api_func(api_call, api_table, **kwargs)
+File "ensemblrest/ensemblrest.py", line 184, in call_api_func
+  return self.parseResponse(resp, content_type)
+File "ensemblrest/ensemblrest.py", line 218, in parseResponse
+  raise ExceptionType(message, error_code=resp.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
+EnsemblRestError: EnsEMBL REST API returned a 400 (Bad Request): Something went wrong while fetching from LDFeatureContainerAdaptor
+
+======================================================================
+ERROR: test_getTranscripsHaplotypes (test.test_ensemblrest.EnsemblRest)
+Testing get transcripts Haplotypes GET method
+----------------------------------------------------------------------
+Traceback (most recent call last):
+File "test/test_ensemblrest.py", line 1201, in test_getTranscripsHaplotypes
+  test = self.EnsEMBL.getTranscripsHaplotypes(species="homo_sapiens", id="ENST00000288602")
+File "ensemblrest/ensemblrest.py", line 114, in <lambda>
+  return lambda **kwargs: self.call_api_func(api_call, api_table, **kwargs)
+File "ensemblrest/ensemblrest.py", line 184, in call_api_func
+  return self.parseResponse(resp, content_type)
+File "ensemblrest/ensemblrest.py", line 218, in parseResponse
+  raise ExceptionType(message, error_code=resp.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
+EnsemblRestError: EnsEMBL REST API returned a 400 (Bad Request): something bad has happened
+
+----------------------------------------------------------------------
+
+something bad has happened
+Something went wrong while fetching from LDFeatureContainerAdaptor

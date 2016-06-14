@@ -54,7 +54,7 @@ class EnsemblRest(unittest.TestCase):
     def test_BadRequest(self):
         """Do an ensembl bad request"""
         
-        self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="mew")
+        self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="meow")
         
     def test_BadUrl(self):
         """Do a Not found request"""
@@ -63,7 +63,7 @@ class EnsemblRest(unittest.TestCase):
         old_uri = self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"]
         
         # set a new uri. This change a global value
-        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/mew/{{id}}'
+        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/meow/{{id}}'
         
         # do a request
         try:
@@ -123,6 +123,16 @@ class EnsemblRest(unittest.TestCase):
             pass
         
         self.assertRegexpMatches(e.msg, "EnsEMBL REST API returned a 429 (Too Many Requests)*")
+        
+    def test_RestUnavailable(self):
+        """Querying a not available REST server"""
+        
+        # get an ensembl rest service (sopposing that we have no local REST service)
+        EnsEMBL = ensemblrest.EnsemblRest(base_url='http://localhost:3000')
+        
+        # get a request (GET)
+        self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveById, id="ENSG00000157764")
+        self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveByMultipleIds, id=["ENSG00000157764", "ENSG00000248378"])
         
 
 if __name__ == "__main__":
