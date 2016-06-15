@@ -35,7 +35,7 @@ import requests
 
 # import ensemblrest modules
 from . import __version__
-from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensemblgenomes_api_table, ensembl_http_status_codes, ensembl_header, ensembl_content_type
+from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensemblgenomes_api_table, ensembl_http_status_codes, ensembl_header, ensembl_content_type, ensembl_known_errors
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
 
 # Logger instance
@@ -59,6 +59,17 @@ class EnsemblRest(object):
         self.rate_limit = None
         self.rate_remaining = None
         self.retry_after = None
+        
+        # to record the last parameters used (in order to redo the query with an ensembl known error)
+        self.last_url = None
+        self.last_headers = None
+        self.last_params = None
+        self.last_data = None
+        self.last_method = None
+        self.last_attempt = None
+        
+        # the maximum number of attempts
+        self.max_attempts = 3
         
         # initialise default values
         default_base_url = ensembl_default_url
@@ -151,7 +162,16 @@ class EnsemblRest(object):
         
         #check the request type (GET or POST?)
         if func['method'] == 'GET':
-            logger.debug("Submitting a GET request. url = '%s', headers = %s, params = %s" %(url, {"Content-Type": content_type}, kwargs))
+            logger.debug("Submitting a GET request: url = '%s', headers = %s, params = %s" %(url, {"Content-Type": content_type}, kwargs))
+            
+            # record this request
+            self.last_url = url
+            self.last_headers = {"Content-Type": content_type}
+            self.last_params = kwargs
+            self.last_data = None
+            self.last_method = "GET"
+            self.last_attempt = 0
+        
             try:
                 resp = self.session.get(url, headers={"Content-Type": content_type}, params=kwargs)
             
@@ -168,7 +188,15 @@ class EnsemblRest(object):
                     data[key] = kwargs[key]
                     del(kwargs[key])
                 
-            logger.debug("Submitting a POST request. url = '%s', headers = %s, params = %s, data = %s" %(url, {"Content-Type": content_type}, kwargs, data))
+            logger.debug("Submitting a POST request: url = '%s', headers = %s, params = %s, data = %s" %(url, {"Content-Type": content_type}, kwargs, data))
+            
+            # record this request
+            self.last_url = url
+            self.last_headers = {"Content-Type": content_type}
+            self.last_params = kwargs
+            self.last_data = data
+            self.last_method = "POST"
+            self.last_attempt = 0
             
             try:
                 # post parameters are load as POST data, other parameters are url parameters as GET requests
@@ -211,6 +239,13 @@ class EnsemblRest(object):
                 json_message = json.loads(resp.text)
                 if json_message.has_key("error"):
                     message = json_message["error"]
+                    
+                #TODO: deal with special cases errors
+                if message in ensembl_known_errors:
+                    # call a function that will re-execute the REST request and then call again parseResponse
+                    # if everithing is ok, a processed content is returned
+                    logger.warn("EnsEMBL REST Service returned: %s" %(message))
+                    return self.__retry_request()
             
             if resp.status_code == 429:
                 ExceptionType = EnsemblRestRateLimitError
@@ -287,6 +322,57 @@ class EnsemblRest(object):
             logger.debug("Retry-After: %s" %(retry_after))
             
         return rate_reset, rate_limit, rate_remaining, retry_after
+        
+    def __retry_request(self):
+        """Retry last request in case of failure"""
+        
+        # update last attempt
+        self.last_attempt += 1
+        
+        # a max of three attempts
+        if self.last_attempt > self.max_attempts:
+            # default status code
+            message = ensembl_http_status_codes[self.last_response.status_code][1]
+            
+            # parse error if possible
+            json_message = json.loads(self.last_response.text)
+            if json_message.has_key("error"):
+                message = json_message["error"]
+        
+            raise EnsemblRestError("Max number of retries attempts reached. Contact the ensembl developers list for more informations. Last message was: %s" %(message), error_code=self.last_response.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
+            
+        # sleep a while
+        to_sleep = self.wall_time * self.last_attempt
+        
+        logger.debug("Sleeping %s" %(to_sleep))
+        time.sleep(to_sleep)
+    
+        # another request using the correct method
+        if self.last_method == "GET":
+            #debug
+            logger.debug("Retring last GET request (%s/%s): url = '%s', headers = %s, params = %s" %(self.last_attempt, self.max_attempts, self.last_url, self.last_headers, self.last_params))
+            
+            try:
+                resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params)
+            
+            except requests.ConnectionError, message:
+                raise EnsemblRestServiceUnavailable(message)
+                
+        elif self.last_method == "POST":
+            #debug
+            logger.debug("Retring last POST request (%s/%s): url = '%s', headers = %s, params = %s, data = %s" %(self.last_attempt, self.max_attempts, self.last_url, self.last_headers, self.last_params, self.last_data))
+            
+            try:
+                resp = self.session.post(self.last_url, headers=self.last_headers, data=json.dumps(self.last_data), params=self.last_params)
+            
+            except requests.ConnectionError, message:
+                raise EnsemblRestServiceUnavailable(message)
+                
+        else:
+            raise NotImplementedError("Method '%s' not yet implemented" %(self.last_method))
+            
+        #call response and return content
+        return self.parseResponse(resp, self.last_headers["Content-Type"])
 
 # EnsEMBL Genome REST API object
 class EnsemblGenomeRest(EnsemblRest):

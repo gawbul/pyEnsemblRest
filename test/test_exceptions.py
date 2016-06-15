@@ -133,6 +133,32 @@ class EnsemblRest(unittest.TestCase):
         # get a request (GET)
         self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveById, id="ENSG00000157764")
         self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveByMultipleIds, id=["ENSG00000157764", "ENSG00000248378"])
+        
+    def test_SomethingBad(self):
+        """raise exception when n of attempts exceeds"""
+        
+        # get a request
+        self.EnsEMBL.getArchiveById(id="ENSG00000157764")
+        
+        # retrieve last_reponse
+        response = self.EnsEMBL.last_response
+        
+        # raise last_attempt number
+        self.EnsEMBL.last_attempt = self.EnsEMBL.max_attempts
+        
+        # create a fake request.Response class
+        class FakeResponse():
+            def __init__(self, response):
+                self.headers = response.headers
+                self.status_code = 400
+                self.text = """{"error":"something bad has happened"}"""
+                self.url = response.url
+                
+        #instantiate a fake response
+        fakeResponse = FakeResponse(response)
+        
+        # verify exception
+        self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.*", self.EnsEMBL.parseResponse, fakeResponse)
 
 
 if __name__ == "__main__":

@@ -629,3 +629,9 @@ ensembl_http_status_codes = {
 ensembl_user_agent = 'pyEnsemblRest v' + __version__
 ensembl_header = {'User-Agent': ensembl_user_agent }
 ensembl_content_type = 'application/json'
+
+# define known errors
+ensembl_known_errors = [
+    "something bad has happened",
+    "Something went wrong while fetching from LDFeatureContainerAdaptor"
+]
