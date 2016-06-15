@@ -633,5 +633,6 @@ ensembl_content_type = 'application/json'
 # define known errors
 ensembl_known_errors = [
     "something bad has happened",
-    "Something went wrong while fetching from LDFeatureContainerAdaptor"
+    "Something went wrong while fetching from LDFeatureContainerAdaptor",
+    "%s timeout" %(ensembl_user_agent)
 ]

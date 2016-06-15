@@ -61,10 +61,20 @@ logger.addHandler(ch)
 WAIT = 0.5
 
 # Sometimes curl fails
-MAX_RETRIES = 2
+MAX_RETRIES = 3
+
+# curl timeouts
+TIMEOUT = 10
 
 def launch(cmd):
     """calling a cmd with subprocess"""
+    
+    # setting curl timeouts
+    pattern = re.compile("curl")
+    repl = "curl --connect-timeout %s --max-time %s" %(TIMEOUT, TIMEOUT*2)
+    
+    # Setting curl options
+    cmd = re.sub(pattern, repl, cmd)
     
     logger.debug("Executing: %s" %(cmd))
     
@@ -346,7 +356,6 @@ class EnsemblRest(unittest.TestCase):
                 self.headers = response.headers
                 self.status_code = 400
                 self.text = """{"error":"something bad has happened"}"""
-                self.url = response.url
                 
         #instantiate a fake response
         fakeResponse = FakeResponse(response)
@@ -377,7 +386,6 @@ class EnsemblRest(unittest.TestCase):
                 self.headers = response.headers
                 self.status_code = 400
                 self.text = """{"error":"something bad has happened"}"""
-                self.url = response.url
                 
         #instantiate a fake response
         fakeResponse = FakeResponse(response)
@@ -407,7 +415,6 @@ class EnsemblRest(unittest.TestCase):
                 self.headers = response.headers
                 self.status_code = 400
                 self.text = """{"error":"Something went wrong while fetching from LDFeatureContainerAdaptor"}"""
-                self.url = response.url
                 
         #instantiate a fake response
         fakeResponse = FakeResponse(response)
@@ -416,6 +423,7 @@ class EnsemblRest(unittest.TestCase):
         # testing values
         self.assertEqual(reference, test)
         self.assertGreaterEqual(self.EnsEMBL.last_attempt, 1)
+        
         
     # Archive
     def test_getArchiveById(self):

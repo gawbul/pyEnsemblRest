@@ -33,9 +33,11 @@ import time
 import logging
 import requests
 
+from collections import namedtuple
+
 # import ensemblrest modules
 from . import __version__
-from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensemblgenomes_api_table, ensembl_http_status_codes, ensembl_header, ensembl_content_type, ensembl_known_errors
+from .ensembl_config import ensembl_default_url, ensembl_genomes_url, ensembl_api_table, ensemblgenomes_api_table, ensembl_http_status_codes, ensembl_header, ensembl_content_type, ensembl_known_errors, ensembl_user_agent
 from .exceptions import EnsemblRestError, EnsemblRestRateLimitError, EnsemblRestServiceUnavailable
 
 # Logger instance
@@ -70,6 +72,9 @@ class EnsemblRest(object):
         
         # the maximum number of attempts
         self.max_attempts = 3
+        
+        # setting a timeout
+        self.timeout = 30
         
         # initialise default values
         default_base_url = ensembl_default_url
@@ -206,33 +211,74 @@ class EnsemblRest(object):
     def __get_response(self):
         """Call session get and post method. Return response"""
         
+        # updating last_req time
+        self.last_req = time.time()
+        
+        #Increment the request counter to rate limit requests    
+        self.req_count += 1
+        
+        # Evaluating the numer of request in a second (according to EnsEMBL rest specification)
+        if self.req_count >= self.reqs_per_sec:
+            delta = time.time() - self.last_req
+            self.wall_time = 1
+            
+            # evaluating if reqs_per_sec is less than 1
+            if self.reqs_per_sec < 1:
+                self.wall_time = int(math.ceil(self.wall_time / self.reqs_per_sec))
+
+            # sleep upto wall_time
+            if delta < self.wall_time:
+                to_sleep = self.wall_time - delta
+                logger.debug("waiting %s" %(to_sleep))
+                time.sleep(to_sleep)
+                
+            self.req_count = 0
+        
+        #TODO: try-except outside if
+        
         # another request using the correct method
         if self.last_method == "GET":
             try:
-                resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params)
+                resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params, timeout=self.timeout)
             
             except requests.ConnectionError, message:
                 raise EnsemblRestServiceUnavailable(message)
                 
+            except requests.Timeout, message:
+                logger.error("GET request timeout: %s" %(message))
+                
+                # create a fake response in order to redo the query
+                resp = namedtuple("fakeResponse", ["headers","status_code","text"])
+                
+                # add some data
+                resp.headers = {}
+                resp.status_code = 400
+                resp.text = json.dumps({'message': repr(message), 'error': "%s timeout" %(ensembl_user_agent)})
+                
         elif self.last_method == "POST":
             try:
                 # post parameters are load as POST data, other parameters are url parameters as GET requests
-                resp = self.session.post(self.last_url, headers=self.last_headers, data=json.dumps(self.last_data), params=self.last_params)
+                resp = self.session.post(self.last_url, headers=self.last_headers, data=json.dumps(self.last_data), params=self.last_params, timeout=self.timeout)
             
             except requests.ConnectionError, message:
                 raise EnsemblRestServiceUnavailable(message)
+                
+            except requests.Timeout, message:
+                logger.error("POST request timeout: %s" %(message))
+                
+                # create a fake response in order to redo the query
+                resp = namedtuple("fakeResponse", ["headers","status_code","text"])
+                
+                # add some data
+                resp.headers = {}
+                resp.status_code = 400
+                resp.text = json.dumps({'message': repr(message), 'error': "%s timeout" %(ensembl_user_agent)})
                 
         return resp
             
     # A function to deal with a generic response
     def parseResponse(self, resp, content_type="application/json"):
         """Deal with a generic REST response"""
-        
-        # updating last_req time
-        self.last_req = time.time()
-        
-        #Increment the request counter to rate limit requests    
-        self.req_count += 1
         
         #record response for debug intent
         self.last_response = resp
@@ -273,7 +319,7 @@ class EnsemblRest(object):
             #default 
             content = resp.text
             
-        # eval if change reqs_per_sec
+        # eval if reqs_per_sec needs to be changed
         if self.rate_remaining is not None and self.rate_reset is not None:
             # calculate the remaining requests per seconds
             reqs_per_sec = float(self.rate_remaining) / float(self.rate_reset)
@@ -286,23 +332,6 @@ class EnsemblRest(object):
             if reqs_per_sec <> self.reqs_per_sec:
                 logger.debug("Setting adaptative request per seconds to %s" %(reqs_per_sec))
                 self.reqs_per_sec = reqs_per_sec
-                
-        # Evaluating the numer of request in a second (according to EnsEMBL rest specification)
-        if self.req_count >= self.reqs_per_sec:
-            delta = time.time() - self.last_req
-            self.wall_time = 1
-            
-            # evaluating if reqs_per_sec is less than 1
-            if self.reqs_per_sec < 1:
-                self.wall_time = int(math.ceil(self.wall_time / self.reqs_per_sec))
-
-            # sleep upto wall_time
-            if delta < self.wall_time:
-                to_sleep = self.wall_time - delta
-                logger.debug("waiting %s" %(to_sleep))
-                time.sleep(to_sleep)
-                
-            self.req_count = 0
             
         return content
         
@@ -352,7 +381,7 @@ class EnsemblRest(object):
             if json_message.has_key("error"):
                 message = json_message["error"]
         
-            raise EnsemblRestError("Max number of retries attempts reached. Contact the ensembl developers list for more informations. Last message was: %s" %(message), error_code=self.last_response.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
+            raise EnsemblRestError("Max number of retries attempts reached. Last message was: %s" %(message), error_code=self.last_response.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
             
         # sleep a while
         to_sleep = self.wall_time * self.last_attempt

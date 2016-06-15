@@ -152,13 +152,25 @@ class EnsemblRest(unittest.TestCase):
                 self.headers = response.headers
                 self.status_code = 400
                 self.text = """{"error":"something bad has happened"}"""
-                self.url = response.url
                 
         #instantiate a fake response
         fakeResponse = FakeResponse(response)
         
         # verify exception
         self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.*", self.EnsEMBL.parseResponse, fakeResponse)
+        
+    def test_RequestTimeout(self):
+        """Deal with connections timeout"""
+        
+        # get a new ensemblrest object
+        ensGenomeRest = ensemblrest.EnsemblGenomeRest()
+        
+        # Set timeout and max_attempts
+        ensGenomeRest.timeout = 0.1
+        ensGenomeRest.max_attempts = 1
+        
+        # verify exception
+        self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.* timeout", ensGenomeRest.getGeneFamilyById, id="MF_01687", compara="bacteria")
 
 
 if __name__ == "__main__":
