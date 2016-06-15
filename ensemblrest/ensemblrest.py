@@ -62,9 +62,9 @@ class EnsemblRest(object):
         
         # to record the last parameters used (in order to redo the query with an ensembl known error)
         self.last_url = None
-        self.last_headers = None
-        self.last_params = None
-        self.last_data = None
+        self.last_headers = {}
+        self.last_params = {}
+        self.last_data = {}
         self.last_method = None
         self.last_attempt = None
         
@@ -168,15 +168,11 @@ class EnsemblRest(object):
             self.last_url = url
             self.last_headers = {"Content-Type": content_type}
             self.last_params = kwargs
-            self.last_data = None
+            self.last_data = {}
             self.last_method = "GET"
             self.last_attempt = 0
         
-            try:
-                resp = self.session.get(url, headers={"Content-Type": content_type}, params=kwargs)
-            
-            except requests.ConnectionError, message:
-                raise EnsemblRestServiceUnavailable(message)
+            resp = self.__get_response()
             
         elif func['method'] == 'POST':
             # in a POST request, separate post parameters from other parameters
@@ -198,18 +194,35 @@ class EnsemblRest(object):
             self.last_method = "POST"
             self.last_attempt = 0
             
-            try:
-                # post parameters are load as POST data, other parameters are url parameters as GET requests
-                resp = self.session.post(url, headers={"Content-Type": content_type}, data=json.dumps(data), params=kwargs)
-                
-            except requests.ConnectionError, message:
-                raise EnsemblRestServiceUnavailable(message)
+            resp = self.__get_response()
                 
         else:
             raise NotImplementedError("Method '%s' not yet implemented" %(func['method']))
             
         #call response and return content
         return self.parseResponse(resp, content_type)
+        
+    # A function to get reponse from ensembl REST api
+    def __get_response(self):
+        """Call session get and post method. Return response"""
+        
+        # another request using the correct method
+        if self.last_method == "GET":
+            try:
+                resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params)
+            
+            except requests.ConnectionError, message:
+                raise EnsemblRestServiceUnavailable(message)
+                
+        elif self.last_method == "POST":
+            try:
+                # post parameters are load as POST data, other parameters are url parameters as GET requests
+                resp = self.session.post(self.last_url, headers=self.last_headers, data=json.dumps(self.last_data), params=self.last_params)
+            
+            except requests.ConnectionError, message:
+                raise EnsemblRestServiceUnavailable(message)
+                
+        return resp
             
     # A function to deal with a generic response
     def parseResponse(self, resp, content_type="application/json"):
@@ -352,24 +365,14 @@ class EnsemblRest(object):
             #debug
             logger.debug("Retring last GET request (%s/%s): url = '%s', headers = %s, params = %s" %(self.last_attempt, self.max_attempts, self.last_url, self.last_headers, self.last_params))
             
-            try:
-                resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params)
-            
-            except requests.ConnectionError, message:
-                raise EnsemblRestServiceUnavailable(message)
+            resp = self.__get_response()
                 
         elif self.last_method == "POST":
             #debug
             logger.debug("Retring last POST request (%s/%s): url = '%s', headers = %s, params = %s, data = %s" %(self.last_attempt, self.max_attempts, self.last_url, self.last_headers, self.last_params, self.last_data))
             
-            try:
-                resp = self.session.post(self.last_url, headers=self.last_headers, data=json.dumps(self.last_data), params=self.last_params)
-            
-            except requests.ConnectionError, message:
-                raise EnsemblRestServiceUnavailable(message)
-                
-        else:
-            raise NotImplementedError("Method '%s' not yet implemented" %(self.last_method))
+            resp = self.__get_response()
+        
             
         #call response and return content
         return self.parseResponse(resp, self.last_headers["Content-Type"])
