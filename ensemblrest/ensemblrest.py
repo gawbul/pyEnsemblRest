@@ -220,11 +220,6 @@ class EnsemblRest(object):
         # Evaluating the numer of request in a second (according to EnsEMBL rest specification)
         if self.req_count >= self.reqs_per_sec:
             delta = time.time() - self.last_req
-            self.wall_time = 1
-            
-            # evaluating if reqs_per_sec is less than 1
-            if self.reqs_per_sec < 1:
-                self.wall_time = int(math.ceil(self.wall_time / self.reqs_per_sec))
 
             # sleep upto wall_time
             if delta < self.wall_time:
@@ -318,20 +313,6 @@ class EnsemblRest(object):
         else:
             #default 
             content = resp.text
-            
-        # eval if reqs_per_sec needs to be changed
-        if self.rate_remaining is not None and self.rate_reset is not None:
-            # calculate the remaining requests per seconds
-            reqs_per_sec = float(self.rate_remaining) / float(self.rate_reset)
-            
-            # reqs_per_sec could be 15 at max
-            if reqs_per_sec > 15:
-                reqs_per_sec = 15
-                
-            # debug
-            if reqs_per_sec <> self.reqs_per_sec:
-                logger.debug("Setting adaptative request per seconds to %s" %(reqs_per_sec))
-                self.reqs_per_sec = reqs_per_sec
             
         return content
         

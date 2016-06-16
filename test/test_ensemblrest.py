@@ -271,47 +271,6 @@ class EnsemblRest(unittest.TestCase):
         self.EnsEMBL.last_req += 2
         self.EnsEMBL.getArchiveById(id='ENSG00000157764')
         
-    def test_adaptativerequest(self):
-        """Testing adaptative requests per seconds"""
-        
-        #suppose you did concurrent requests using moltiple clients, for instances. You should do
-        #only 15 request per seconds (that is 55000 request in a hour / 3600 seconds).
-        
-        #cases are X-RateLimit-Remaining requests and X-RateLimit-Reset and wall_time
-        cases = ((10000, 200, 1), (10000, 2000, 1), (1000, 2000, 2))
-        
-        # get a request
-        self.EnsEMBL.getArchiveById(id="ENSG00000157764")
-        
-        # retrieve last_reponse
-        response = self.EnsEMBL.last_response
-        
-        # get headers
-        headers = response.headers
-        
-        for remaining, reset, wall_time in cases:
-            # simulating a rate limiting
-            # https://github.com/Ensembl/ensembl-rest/wiki/Rate-Limits#a-maxed-out-rate-limit-response
-            headers["X-RateLimit-Limit"] = '55000'
-            headers["X-RateLimit-Reset"] = str(reset)
-            headers["X-RateLimit-Period"] = '3600'
-            headers["X-RateLimit-Remaining"] = str(remaining)
-            
-            # parse response and get requests per sec
-            self.EnsEMBL.parseResponse(response)
-            
-            # compute requests per seconds
-            reqs_per_sec = float(remaining) / reset
-            
-            # maximum value is 15
-            if reqs_per_sec > 15:
-                reqs_per_sec = 15
-            
-            # eval adaptative requests
-            self.assertEqual(reqs_per_sec, self.EnsEMBL.reqs_per_sec)
-            self.assertEqual(wall_time, self.EnsEMBL.wall_time)
-            
-        
     def test_methodNotImplemented(self):
         """Testing a not implemented method"""
         
