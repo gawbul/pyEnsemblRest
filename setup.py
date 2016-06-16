@@ -26,7 +26,7 @@ from setuptools import find_packages
 
 __author__ = 'Steve Moss'
 __email__ = 'gawbul@gmail.com'
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 setup(
     # Basic package information.
