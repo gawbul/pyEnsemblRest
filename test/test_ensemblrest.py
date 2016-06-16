@@ -61,10 +61,10 @@ logger.addHandler(ch)
 WAIT = 0.5
 
 # Sometimes curl fails
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 
 # curl timeouts
-TIMEOUT = 10
+TIMEOUT = 60
 
 def launch(cmd):
     """calling a cmd with subprocess"""

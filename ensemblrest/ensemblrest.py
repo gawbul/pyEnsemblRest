@@ -27,7 +27,6 @@
 
 # import system modules
 import re
-import math
 import json
 import time
 import logging
@@ -71,10 +70,10 @@ class EnsemblRest(object):
         self.last_attempt = None
         
         # the maximum number of attempts
-        self.max_attempts = 3
+        self.max_attempts = 5
         
         # setting a timeout
-        self.timeout = 30
+        self.timeout = 60
         
         # initialise default values
         default_base_url = ensembl_default_url
@@ -229,46 +228,35 @@ class EnsemblRest(object):
                 
             self.req_count = 0
         
-        #TODO: try-except outside if
-        
-        # another request using the correct method
-        if self.last_method == "GET":
-            try:
-                resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params, timeout=self.timeout)
+        # deal with exceptions
+        try:
             
-            except requests.ConnectionError, message:
-                raise EnsemblRestServiceUnavailable(message)
+        
+            # another request using the correct method
+            if self.last_method == "GET":
+                resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params, timeout=self.timeout)
                 
-            except requests.Timeout, message:
-                logger.error("GET request timeout: %s" %(message))
-                
-                # create a fake response in order to redo the query
-                resp = namedtuple("fakeResponse", ["headers","status_code","text"])
-                
-                # add some data
-                resp.headers = {}
-                resp.status_code = 400
-                resp.text = json.dumps({'message': repr(message), 'error': "%s timeout" %(ensembl_user_agent)})
-                
-        elif self.last_method == "POST":
-            try:
+                    
+            elif self.last_method == "POST":
                 # post parameters are load as POST data, other parameters are url parameters as GET requests
                 resp = self.session.post(self.last_url, headers=self.last_headers, data=json.dumps(self.last_data), params=self.last_params, timeout=self.timeout)
+                
+            # other methods are verifiedby others functions
+                    
+        except requests.ConnectionError, message:
+            raise EnsemblRestServiceUnavailable(message)
+                    
+        except requests.Timeout, message:
+            logger.error("%s request timeout: %s" %(self.last_method, message))
             
-            except requests.ConnectionError, message:
-                raise EnsemblRestServiceUnavailable(message)
-                
-            except requests.Timeout, message:
-                logger.error("POST request timeout: %s" %(message))
-                
-                # create a fake response in order to redo the query
-                resp = namedtuple("fakeResponse", ["headers","status_code","text"])
-                
-                # add some data
-                resp.headers = {}
-                resp.status_code = 400
-                resp.text = json.dumps({'message': repr(message), 'error': "%s timeout" %(ensembl_user_agent)})
-                
+            # create a fake response in order to redo the query
+            resp = namedtuple("fakeResponse", ["headers","status_code","text"])
+            
+            # add some data
+            resp.headers = {}
+            resp.status_code = 400
+            resp.text = json.dumps({'message': repr(message), 'error': "%s timeout" %(ensembl_user_agent)})
+
         return resp
             
     # A function to deal with a generic response
@@ -364,8 +352,8 @@ class EnsemblRest(object):
         
             raise EnsemblRestError("Max number of retries attempts reached. Last message was: %s" %(message), error_code=self.last_response.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
             
-        # sleep a while
-        to_sleep = self.wall_time * self.last_attempt
+        # sleep a while. Increment on each attempt
+        to_sleep = ( self.wall_time +1 ) * self.last_attempt
         
         logger.debug("Sleeping %s" %(to_sleep))
         time.sleep(to_sleep)

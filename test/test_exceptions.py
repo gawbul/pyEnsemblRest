@@ -165,9 +165,9 @@ class EnsemblRest(unittest.TestCase):
         # get a new ensemblrest object
         ensGenomeRest = ensemblrest.EnsemblGenomeRest()
         
-        # Set timeout and max_attempts
-        ensGenomeRest.timeout = 0.1
+        # Ovverride max_attempts
         ensGenomeRest.max_attempts = 1
+        ensGenomeRest.timeout = 1
         
         # verify exception
         self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.* timeout", ensGenomeRest.getGeneFamilyById, id="MF_01687", compara="bacteria")
