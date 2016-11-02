@@ -67,7 +67,7 @@ class EnsemblRest(object):
         self.last_params = {}
         self.last_data = {}
         self.last_method = None
-        self.last_attempt = None
+        self.last_attempt = 0
         
         # the maximum number of attempts
         self.max_attempts = 5
@@ -75,13 +75,27 @@ class EnsemblRest(object):
         # setting a timeout
         self.timeout = 60
         
+        # set default values if those values are not provided
+        self.__set_default()
+        
+        # setup requests session
+        self.session = requests.Session()
+        
+        # update headers
+        self.__update_headers()
+
+        # add class methods relying api_table
+        self.__add_methods(api_table)
+            
+    def __set_default(self):
+        """Set default values"""
+        
         # initialise default values
         default_base_url = ensembl_default_url
         default_headers = ensembl_header
         default_content_type = ensembl_content_type
         default_proxies = {}
         
-        # set default values if those values are not provided
         if 'base_url' not in self.session_args:
             self.session_args['base_url'] = default_base_url
             
@@ -96,9 +110,9 @@ class EnsemblRest(object):
             
         if 'proxies' not in self.session_args:
             self.session_args['proxies'] = default_proxies
-        
-        # setup requests session
-        self.session = requests.Session()
+    
+    def __update_headers(self):
+        """Update headers"""
         
         # update requests client with arguments
         client_args_copy = self.session_args.copy()
@@ -109,7 +123,10 @@ class EnsemblRest(object):
         
         # update headers as already exist within client
         self.session.headers.update(self.session_args.pop('headers'))
-
+        
+    def __add_methods(self, api_table):
+        """Add methods to class object"""
+        
         # iterate over api_table keys and add key to class namespace
         for fun_name in api_table.keys():
             #setattr(self, key, self.register_api_func(key))
@@ -122,8 +139,7 @@ class EnsemblRest(object):
             
             #add function name to the class methods
             self.__dict__[fun_name].__name__ = fun_name
-            
-
+        
     # dynamic api registration function
     def register_api_func(self, api_call, api_table):
         return lambda **kwargs: self.call_api_func(api_call, api_table, **kwargs)
@@ -227,11 +243,20 @@ class EnsemblRest(object):
                 time.sleep(to_sleep)
                 
             self.req_count = 0
+            
+        # do a request and deal with resonse
+        resp = self.__do_request()
+        
+        # return response
+        return resp
+
+    def __do_request(self):
+        """Do GET or POST request and deal with exceptions"""
+        
+        resp = None
         
         # deal with exceptions
         try:
-            
-        
             # another request using the correct method
             if self.last_method == "GET":
                 resp = self.session.get(self.last_url, headers = self.last_headers, params=self.last_params, timeout=self.timeout)
@@ -256,18 +281,38 @@ class EnsemblRest(object):
             resp.headers = {}
             resp.status_code = 400
             resp.text = json.dumps({'message': repr(message), 'error': "%s timeout" %(ensembl_user_agent)})
-
+        
+        # return response
         return resp
-            
+
     # A function to deal with a generic response
     def parseResponse(self, resp, content_type="application/json"):
         """Deal with a generic REST response"""
+        
+        logger.debug("Got %s" %(resp.text))
         
         #record response for debug intent
         self.last_response = resp
         
         # initialize some values. Check if I'm rate limited
         self.rate_reset, self.rate_limit, self.rate_remaining, self.retry_after = self.__get_rate_limit(resp.headers)
+        
+        # parse status code
+        if self.__check_retry(resp):
+            return self.__retry_request()
+
+        #handle content in different way relying on content-type
+        if content_type == 'application/json':
+            content = json.loads(resp.text)
+        
+        else:
+            #default 
+            content = resp.text
+            
+        return content
+    
+    def __check_retry(self, resp):
+        """Parse status code and print warnings. Return True if a retry is needed"""
         
         # default status code
         message = ensembl_http_status_codes[resp.status_code][1]
@@ -287,23 +332,19 @@ class EnsemblRest(object):
                     # call a function that will re-execute the REST request and then call again parseResponse
                     # if everithing is ok, a processed content is returned
                     logger.warn("EnsEMBL REST Service returned: %s" %(message))
-                    return self.__retry_request()
+                    
+                    # return true if retry needed
+                    return True
             
             if resp.status_code == 429:
                 ExceptionType = EnsemblRestRateLimitError
 
             raise ExceptionType(message, error_code=resp.status_code, rate_reset=self.rate_reset, rate_limit=self.rate_limit, rate_remaining=self.rate_remaining, retry_after=self.retry_after)
+        
+        # return a flag if status is ok
+        return False
 
-        #handle content in different way relying on content-type
-        if content_type == 'application/json':
-            content = json.loads(resp.text)
-        
-        else:
-            #default 
-            content = resp.text
-            
-        return content
-        
+    
     def __get_rate_limit(self, headers):
         """Read rate limited attributes"""
         
@@ -371,7 +412,6 @@ class EnsemblRest(object):
             
             resp = self.__get_response()
         
-            
         #call response and return content
         return self.parseResponse(resp, self.last_headers["Content-Type"])
 
