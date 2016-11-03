@@ -143,11 +143,9 @@ class EnsemblRest(object):
     # dynamic api registration function
     def register_api_func(self, api_call, api_table):
         return lambda **kwargs: self.call_api_func(api_call, api_table, **kwargs)
-
-    # dynamic api call function
-    def call_api_func(self, api_call, api_table, **kwargs):
-        # build url from api_table kwargs
-        func = api_table[api_call]
+        
+    def __check_params(self, func, kwargs):
+        """Check for mandatory parameters"""
         
         #Verify required variables and raise an Exception if needed
         mandatory_params = re.findall('\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', func['url'])
@@ -158,7 +156,18 @@ class EnsemblRest(object):
                 raise Exception("mandatory param '%s' not specified" %(param))
             else:
                 logger.debug("Mandatory param %s found" %(param))
+                
+        return mandatory_params
+
+    # dynamic api call function
+    def call_api_func(self, api_call, api_table, **kwargs):
+        # build url from api_table kwargs
+        func = api_table[api_call]
         
+        # check mandatory params
+        mandatory_params = self.__check_params(func, kwargs)
+        
+        # resolving urls
         url = re.sub('\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)), self.session.base_url + func['url'])
         
         # debug
@@ -243,16 +252,8 @@ class EnsemblRest(object):
                 time.sleep(to_sleep)
                 
             self.req_count = 0
-            
-        # do a request and deal with resonse
-        resp = self.__do_request()
         
-        # return response
-        return resp
-
-    def __do_request(self):
-        """Do GET or POST request and deal with exceptions"""
-        
+        # my response
         resp = None
         
         # deal with exceptions
