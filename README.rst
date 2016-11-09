@@ -55,6 +55,22 @@ along with pyEnsemblRest.  If not, see <http://www.gnu.org/licenses/>.
 
 Installation
 ============
+
+Using pip
+---------
+
+Simply type:
+
+.. code:: bash
+
+  pip install pyensemblrest
+
+
+From source
+-----------
+
+Clone the pyEnsemblRest then install package from source:
+
 .. code:: bash
 
   git clone https://github.com/pyOpenSci/pyEnsemblRest.git
@@ -114,7 +130,7 @@ Alternatively this library verifies and limits your requests to 15 requests per 
 GET endpoints
 -------------
 
-EnsemblRest and EnsemblGenomeRest class methods are not defined in libraries, so you cannot see docstring using help() method on python or ipython terminal. However you can see all methods available for ensembl_ and ensemblgenomes_ rest server once class is instantiate. To get help on a particoular method, please refer to ensembl help documentation on different endpoints in the ensembl_ and ensemblgenomes_ rest service. Please note that endpoints on ensembl_ may be different from ensemblgenomes_ endpoints.
+EnsemblRest and EnsemblGenomeRest class methods are not defined in libraries, so you cannot see docstring using help() method on python or ipython terminal. However you can see all methods available for ensembl_ and ensemblgenomes_ rest server once class is instantiate. To get help on a particular method, please refer to ensembl help documentation on different endpoints in the ensembl_ and ensemblgenomes_ rest service. Please note that endpoints on ensembl_ may be different from ensemblgenomes_ endpoints.
 If you look, for example, at sequence_ endpoint documentation, you will find optional and required parameters. Required parameters must be specified in order to work properly, otherwise you will get an exception. Optional parameters may be specified or not, depending on your request. In all cases parameter name are the same used in documentation. For example to get data using sequence_ endpoint, you must specify at least required parameters:
 
 .. code:: python
@@ -171,6 +187,66 @@ ensembl REST documentation. You need also to check if the same ``Content-type``
 is supported in the EnsEMBL endpoint description.
 
 .. _Supported MIME Types: https://github.com/Ensembl/ensembl-rest/wiki/Output-formats#supported-mime-types
+
+Rate limiting
+-------------
+
+Sometime you can be rate limited if you are querying EnsEMBL REST services with more than one concurrent processes, or by `sharing ip addresses`_. In such case, you can have a message like this:
+
+.. _sharing ip addresses: https://github.com/Ensembl/ensembl-rest/wiki#example-clients
+
+.. code:: bash
+
+  ensemblrest.exceptions.EnsemblRestRateLimitError: EnsEMBL REST API returned a 429 (Too Many Requests): You have been rate-limited; wait and retry. The headers X-RateLimit-Reset, X-RateLimit-Limit and X-RateLimit-Remaining will inform you of how long you have until your limit is reset and what that limit was. If you get this response and have not exceeded your limit then check if you have made too many requests per second. (Rate limit hit:  Retry after 2 seconds)
+
+Even if this library tries to do 15 request per seconds, you should avoid to run multiple
+EnsEMBL REST clients. To deal which such problem without interrupting your code, try
+to deal with the exception; For example:
+
+.. code:: python
+
+  # import required modules
+  import os
+  import sys
+  import time
+  import logging
+
+  # get ensembl REST modules and exception
+  from ensemblrest import EnsemblRest
+  from ensemblrest import EnsemblRestRateLimitError
+
+  # An useful way to defined a logger lever, handler, and formatter
+  logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+  logger = logging.getLogger(os.path.basename(sys.argv[0]))
+
+  # setup a new EnsemblRest object
+  ensRest = EnsemblRest()
+
+  # Get a request and deal with retry_after. Set a maximum number of retries (don't
+  # try to do the same request forever or you will be banned from ensembl!)
+  attempt = 0
+  max_attempts = 3
+
+  while attempt < max_attempts:
+      # update attempt count
+      attempt += 1
+
+      try:
+          result = ensRest.getLookupById(id='ENSG00000157764')
+          # exit while on success
+          break
+
+      # log exception and sleep a certain amount of time (sleeping time increases at each step)
+      except EnsemblRestRateLimitError, message:
+          logger.warn(message)
+          time.sleep(ensRest.retry_after*attempt)
+
+      finally:
+          if attempt >= max_attempts:
+              raise Exception("max attempts exceeded (%s)" %(max_attempts))
+
+  sys.stdout.write("%s\n" %(result))
+  sys.stdout.flush()
 
 Methods list
 ------------

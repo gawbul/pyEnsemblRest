@@ -54,7 +54,7 @@ class EnsemblRest(unittest.TestCase):
     def test_BadRequest(self):
         """Do an ensembl bad request"""
         
-        self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="mew")
+        self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="meow")
         
     def test_BadUrl(self):
         """Do a Not found request"""
@@ -63,7 +63,7 @@ class EnsemblRest(unittest.TestCase):
         old_uri = self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"]
         
         # set a new uri. This change a global value
-        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/mew/{{id}}'
+        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/meow/{{id}}'
         
         # do a request
         try:
@@ -124,6 +124,54 @@ class EnsemblRest(unittest.TestCase):
         
         self.assertRegexpMatches(e.msg, "EnsEMBL REST API returned a 429 (Too Many Requests)*")
         
+    def test_RestUnavailable(self):
+        """Querying a not available REST server"""
+        
+        # get an ensembl rest service (sopposing that we have no local REST service)
+        EnsEMBL = ensemblrest.EnsemblRest(base_url='http://localhost:3000')
+        
+        # get a request (GET)
+        self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveById, id="ENSG00000157764")
+        self.assertRaises(EnsemblRestServiceUnavailable, EnsEMBL.getArchiveByMultipleIds, id=["ENSG00000157764", "ENSG00000248378"])
+        
+    def test_SomethingBad(self):
+        """raise exception when n of attempts exceeds"""
+        
+        # get a request
+        self.EnsEMBL.getArchiveById(id="ENSG00000157764")
+        
+        # retrieve last_reponse
+        response = self.EnsEMBL.last_response
+        
+        # raise last_attempt number
+        self.EnsEMBL.last_attempt = self.EnsEMBL.max_attempts
+        
+        # create a fake request.Response class
+        class FakeResponse():
+            def __init__(self, response):
+                self.headers = response.headers
+                self.status_code = 400
+                self.text = """{"error":"something bad has happened"}"""
+                
+        #instantiate a fake response
+        fakeResponse = FakeResponse(response)
+        
+        # verify exception
+        self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.*", self.EnsEMBL.parseResponse, fakeResponse)
+        
+    def test_RequestTimeout(self):
+        """Deal with connections timeout"""
+        
+        # get a new ensemblrest object
+        ensGenomeRest = ensemblrest.EnsemblGenomeRest()
+        
+        # Ovverride max_attempts
+        ensGenomeRest.max_attempts = 1
+        ensGenomeRest.timeout = 1
+        
+        # verify exception
+        self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.* timeout", ensGenomeRest.getGeneFamilyById, id="MF_01687", compara="bacteria")
+
 
 if __name__ == "__main__":
     unittest.main()

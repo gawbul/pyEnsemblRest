@@ -48,6 +48,7 @@ class EnsemblRestRateLimitError(EnsemblRestError):
     def __init__(self, msg, error_code, rate_reset=None, rate_limit=None, rate_remaining=None, retry_after=None):
         if isinstance(retry_after, float):
             msg = '%s (Rate limit hit:  Retry after %d seconds)' % (msg, retry_after)
+            
         EnsemblRestError.__init__(self, msg, error_code=error_code)
 
 class EnsemblRestServiceUnavailable(EnsemblRestError):

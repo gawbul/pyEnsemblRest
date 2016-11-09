@@ -1,4 +1,4 @@
 
-* Implement Variation GA4GH methods
-* Implement missing methods
-* Test ensemblgenomes methods
+* Simplify EnsemblRest.__init__()
+* Simplify somethingBad tests
+* simplify parseResponse
