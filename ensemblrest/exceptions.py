@@ -19,8 +19,8 @@
     Implements custom exceptions for the EnsEMBL REST API
     
 """
+from .ensembl_config import ensembl_http_status_codes
 
-from ensembl_config import ensembl_http_status_codes
 
 class EnsemblRestError(Exception):
     """
@@ -40,16 +40,18 @@ class EnsemblRestError(Exception):
     def msg(self):
         return self.args[0]
 
+
 class EnsemblRestRateLimitError(EnsemblRestError):
     """
         Raised when you've hit a rate limit.
         The amount of seconds to retry your request in will be appended to the message.
     """
-    def __init__(self, msg, error_code, rate_reset=None, rate_limit=None, rate_remaining=None, retry_after=None):
+    def __init__(self, msg, error_code=None, rate_reset=None, rate_limit=None, rate_remaining=None, retry_after=None):
         if isinstance(retry_after, float):
             msg = '%s (Rate limit hit:  Retry after %d seconds)' % (msg, retry_after)
             
         EnsemblRestError.__init__(self, msg, error_code=error_code)
+
 
 class EnsemblRestServiceUnavailable(EnsemblRestError):
     """

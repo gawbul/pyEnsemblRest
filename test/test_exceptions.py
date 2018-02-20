@@ -39,6 +39,8 @@ from ensemblrest.exceptions import EnsemblRestError, EnsemblRestRateLimitError, 
 # import other modules
 import unittest
 
+import six
+
 #TODO: test maximum POST input size
 class EnsemblRest(unittest.TestCase):
     """A class to test EnsemblRest methods"""
@@ -54,40 +56,40 @@ class EnsemblRest(unittest.TestCase):
     def test_BadRequest(self):
         """Do an ensembl bad request"""
         
-        self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="meow")
+        six.assertRaisesRegex(self, EnsemblRestError, "EnsEMBL REST API returned a 400 (Bad Request)*", self.EnsEMBL.getArchiveById, id="meow")
         
     def test_BadUrl(self):
         """Do a Not found request"""
         
         # record old uri value
-        old_uri = self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"]
+        old_uri = self.EnsEMBL.getArchiveById.__globals__["ensembl_api_table"]["getArchiveById"]["url"]
         
         # set a new uri. This change a global value
-        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/meow/{{id}}'
+        self.EnsEMBL.getArchiveById.__globals__["ensembl_api_table"]["getArchiveById"]["url"] = '/archive/meow/{{id}}'
         
         # do a request
         try:
-            self.assertRaisesRegexp(EnsemblRestError, "EnsEMBL REST API returned a 404 (Not Found)*", self.EnsEMBL.getArchiveById, id="ENSG00000157764")
+            six.assertRaisesRegex(self, EnsemblRestError, "EnsEMBL REST API returned a 404 (Not Found)*", self.EnsEMBL.getArchiveById, id="ENSG00000157764")
             
-        except AssertionError, message:
+        except AssertionError as e:
             # fix the global value
-            self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = old_uri
+            self.EnsEMBL.getArchiveById.__globals__["ensembl_api_table"]["getArchiveById"]["url"] = old_uri
             # then raise exception
-            raise Exception, message
+            raise Exception(e)
             
         # fix the global value
-        self.EnsEMBL.getArchiveById.func_globals["ensembl_api_table"]["getArchiveById"]["url"] = old_uri
+        self.EnsEMBL.getArchiveById.__globals__["ensembl_api_table"]["getArchiveById"]["url"] = old_uri
         
     def test_getMsg(self):
         """Do a bad request and get message"""
-        
+
+        msg = None
         try:
             self.EnsEMBL.getArchiveById(id="miao")
-        
         except EnsemblRestError as e:
-            pass
+            msg = e.msg
         
-        self.assertRegexpMatches(e.msg, "EnsEMBL REST API returned a 400 (Bad Request)*")
+        self.assertRegexpMatches(msg, "EnsEMBL REST API returned a 400 (Bad Request)*")
         
     def test_rateLimit(self):
         """Simulating a rate limiting environment"""
@@ -113,16 +115,17 @@ class EnsemblRest(unittest.TestCase):
         response.status_code = 429
         
         # now parse request. headers is a reference to response.headers
-        self.assertRaisesRegexp(EnsemblRestRateLimitError, "EnsEMBL REST API returned a 429 (Too Many Requests)*", self.EnsEMBL.parseResponse, response)
+        six.assertRaisesRegex(self, EnsemblRestRateLimitError, "EnsEMBL REST API returned a 429 (Too Many Requests)*", self.EnsEMBL.parseResponse, response)
         
         # try to read exception message
+        msg = None
         try:
             self.EnsEMBL.parseResponse(response)
         
         except EnsemblRestError as e:
-            pass
+            msg = e.msg
         
-        self.assertRegexpMatches(e.msg, "EnsEMBL REST API returned a 429 (Too Many Requests)*")
+        self.assertRegexpMatches(msg, "EnsEMBL REST API returned a 429 (Too Many Requests)*")
         
     def test_RestUnavailable(self):
         """Querying a not available REST server"""
@@ -148,8 +151,8 @@ class EnsemblRest(unittest.TestCase):
         
         # create a fake request.Response class
         class FakeResponse():
-            def __init__(self, response):
-                self.headers = response.headers
+            def __init__(self, resp):
+                self.headers = resp.headers
                 self.status_code = 400
                 self.text = """{"error":"something bad has happened"}"""
                 
@@ -157,7 +160,7 @@ class EnsemblRest(unittest.TestCase):
         fakeResponse = FakeResponse(response)
         
         # verify exception
-        self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.*", self.EnsEMBL.parseResponse, fakeResponse)
+        six.assertRaisesRegex(self, EnsemblRestError, "Max number of retries attempts reached.*", self.EnsEMBL.parseResponse, fakeResponse)
         
     def test_RequestTimeout(self):
         """Deal with connections timeout"""
@@ -170,7 +173,7 @@ class EnsemblRest(unittest.TestCase):
         ensGenomeRest.timeout = 1
         
         # verify exception
-        self.assertRaisesRegexp(EnsemblRestError, "Max number of retries attempts reached.* timeout", ensGenomeRest.getGeneFamilyById, id="MF_01687", compara="bacteria")
+        six.assertRaisesRegex(self, EnsemblRestError, "Max number of retries attempts reached.* timeout", ensGenomeRest.getGeneFamilyById, id="MF_01687", compara="bacteria")
 
 
 if __name__ == "__main__":

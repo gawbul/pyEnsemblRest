@@ -25,11 +25,11 @@
 import ensemblrest
 
 # import other modules
+import six
 import re
 import json
 import time
 import shlex
-import types
 import urllib
 import logging
 import subprocess
@@ -66,6 +66,7 @@ MAX_RETRIES = 5
 # curl timeouts
 TIMEOUT = 60
 
+
 def launch(cmd):
     """calling a cmd with subprocess"""
     
@@ -79,7 +80,7 @@ def launch(cmd):
     logger.debug("Executing: %s" %(cmd))
     
     args = shlex.split(cmd)
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
     
     if len(stderr) > 0: 
@@ -92,7 +93,8 @@ def launch(cmd):
 
 def jsonFromCurl(curl_cmd):
     """Parsing a JSON curl result"""
-    
+
+    data = None
     retry = 0
     
     while retry < MAX_RETRIES:
@@ -106,16 +108,16 @@ def jsonFromCurl(curl_cmd):
         try:
             data = json.loads(result)
             
-        except ValueError, message:
-            logger.warn("Curl command failed: %s" %(message))
+        except ValueError as e:
+            logger.warning("Curl command failed: %s" % e)
             time.sleep(WAIT*10)
             
             #next request
             continue
-        
-        if type(data) == types.DictionaryType:
-            if data.has_key("error"):
-                logger.warn("Curl command failed: %s" %(data["error"]))
+
+        if isinstance(data, dict):
+            if "error" in data:
+                logger.warning("Curl command failed: %s" %(data["error"]))
                 time.sleep(WAIT*10)
                 
                 #next request
@@ -135,17 +137,17 @@ def _genericCMP(v1, v2):
     if type(v1) != type(v2):
         return False
         
-    elif type(v1) == types.DictionaryType:
+    elif isinstance(v1, dict):
         #call comparedict
         if compareDict(v1, v2) is False:
             return False
                     
-    elif type(v1) == types.ListType:
+    elif isinstance(v1, list):
         #call comparedict
         if compareList(v1, v2) is False:
             return False
             
-    elif type(v1) in [types.UnicodeType, types.FloatType, types.IntType]:
+    elif isinstance(v1, (six.string_types, float, int)):
         if v1 != v2:
             return False
         
@@ -167,9 +169,9 @@ def compareDict(d1, d2):
     k2 = d2.keys()
     
     # sorting keys
-    k1.sort()
-    k2.sort()
-    
+    k1 = sorted(k1)
+    k2 = sorted(k2)
+
     logger.debug(k1)
     logger.debug(k2)
     
@@ -187,7 +189,7 @@ def compareDict(d1, d2):
             continue
         
         # the species key may differ in some cases: ex: Tgut-Mgal-Ggal[3] <> Ggal-Mgal-Tgut[3]
-        if k in ["species", "tree"] and type(v1) == types.UnicodeType and type(v2) == types.UnicodeType:
+        if k in ["species", "tree"] and isinstance(v1, six.string_types) and isinstance(v2, six.string_types):
             pattern = re.compile("([\w]+)-?(?:\[\d\])?")
             
             #override values
@@ -264,7 +266,7 @@ class EnsemblRestBase(EnsemblRest):
     def test_mandatoryParameters(self):
         """Testing EnsemblRest with no mandatory parameters"""
         
-        self.assertRaisesRegexp(Exception, "mandatory param .* not specified", self.EnsEMBL.getArchiveById)
+        six.assertRaisesRegex(self, Exception, "mandatory param .* not specified", self.EnsEMBL.getArchiveById)
         
     def test_wait4request(self):
         """Simulating max request per second"""
@@ -336,8 +338,7 @@ class EnsemblRestBase(EnsemblRest):
     def test_SomethingBadPOST(self):
         """Deal with the {"error":"something bad has happened"} message using a POST method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/lookup/id' -H 'Content-type:application/json' \
--H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/lookup/id' -H 'Content-type:application/json' -H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
       
         # execute EnsemblRest function
         self.EnsEMBL.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378" ])
@@ -364,8 +365,8 @@ class EnsemblRestBase(EnsemblRest):
         
         # create a fake request.Response class
         class FakeResponse():
-            def __init__(self, response):
-                self.headers = response.headers
+            def __init__(self, resp):
+                self.headers = resp.headers
                 self.status_code = 400
                 self.text = """{"error":"Something went wrong while fetching from LDFeatureContainerAdaptor"}"""
                 
@@ -441,7 +442,7 @@ class EnsemblRestComparative(EnsemblRest):
         test = self.EnsEMBL.getGeneTreeById(id='ENSGT00390000003602', content_type="application/json")
         
         # testing values
-        self.assertDictEqual(reference, test)
+        self.assertTrue(compareDict(reference, test))
         
     def test_getGeneTreeMemberById(self):
         """Test genetree by member id GET method"""
@@ -755,10 +756,12 @@ class EnsemblRestInfo(EnsemblRest):
         # The transitory failure seems to be related to a misconfiguration of ensembl
         # rest service. In such cases is better to inform dev<at>ensembl.org and report
         # such issues
-        except AssertionError, message:
+        except AssertionError as e:
             # sometimes this test can fail. In such case, i log the error
-            logger.error(message)
-            logger.error("Sometimes 'test_getInfoSpecies' fails. This could be a transitory problem on EnsEMBL REST service")
+            logger.error(e)
+            logger.error(
+                "Sometimes 'test_getInfoSpecies' fails. This could be a transitory problem on EnsEMBL REST service"
+            )
         
     def test_getInfoVariation(self):
         """Testing Info Variation GET method"""
@@ -794,9 +797,9 @@ class EnsemblRestLinkage(EnsemblRest):
 
     def test_getLdId(self):
         """Testing get LD ID GET method"""
-        
-        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/rs1042779?population_name=1000GENOMES:phase_3:KHV;window_size=10;d_prime=1.0' -H 'Content-type:application/json'"""
-        
+
+        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/rs1042779/1000GENOMES:phase_3:KHV?window_size=10;d_prime=1.0' -H 'Content-type:application/json'"""
+
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
       
@@ -808,9 +811,9 @@ class EnsemblRestLinkage(EnsemblRest):
             self.assertEqual(reference, test)
             
         #TODO: why this test fail sometimes?
-        except AssertionError, message:
+        except AssertionError as e:
             # sometimes this test can fail. In such case, i log the error
-            logger.error(message)
+            logger.error(e)
             logger.error("Sometimes 'test_getLdId' fails. Maybe could be an ensembl transient problem?")
         
     def test_getLdPairwise(self):
@@ -829,15 +832,15 @@ class EnsemblRestLinkage(EnsemblRest):
             self.assertEqual(reference, test)
             
         #TODO: why this test fail sometimes?
-        except AssertionError, message:
+        except AssertionError as e:
             # sometimes this test can fail. In such case, i log the error
-            logger.error(message)
+            logger.error(e)
             logger.error("Sometimes 'test_getLdPairwise' fails. Maybe could be an ensembl transient problem?")
         
     def test_getLdRegion(self):
         """Testing get LD region GET method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/region/6:25837556..25843455?population_name=1000GENOMES:phase_3:KHV;r2=0.85:d_prime=1.0' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/ld/human/region/6:25837556..25843455/1000GENOMES:phase_3:KHV?r2=0.85:d_prime=1.0' -H 'Content-type:application/json'"""
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
@@ -850,9 +853,9 @@ class EnsemblRestLinkage(EnsemblRest):
             self.assertTrue(reference, test)
             
         #TODO: why this test fail sometimes?
-        except AssertionError, message:
+        except AssertionError as e:
             # sometimes this test can fail. In such case, i log the error
-            logger.error(message)
+            logger.error(e)
             logger.error("Sometimes 'test_getLdRegion' fails. Maybe could be an ensembl transient problem?")
     
 class EnsemblRestLookUp(EnsemblRest):
@@ -1069,7 +1072,9 @@ class EnsemblRestOT(EnsemblRest):
     def test_getOntologyByName(self):
         """Test get ontology by name GET method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/ontology/name/%s?' -H 'Content-type:application/json'""" %(urllib.quote("transcription factor complex"))
+        curl_cmd = """curl 'http://rest.ensembl.org/ontology/name/%s?' -H 'Content-type:application/json'""" % (
+            six.moves.urllib.parse.quote("transcription factor complex")
+        )
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
@@ -1096,9 +1101,9 @@ class EnsemblRestOT(EnsemblRest):
             self.assertTrue(reference, test)
             
         #TODO: why this test fail sometimes?
-        except AssertionError, message:
+        except AssertionError as e:
             # sometimes this test can fail. In such case, i log the error
-            logger.error(message)
+            logger.error(e)
             logger.error("Sometimes 'test_getTaxonomyClassificationById' fails. Maybe could be an ensembl transient problem?")
         
     def test_getTaxonomyById(self):
@@ -1120,9 +1125,9 @@ class EnsemblRestOT(EnsemblRest):
         # The transitory failure seems to be related to a misconfiguration of ensembl
         # rest service. In such cases is better to inform dev<at>ensembl.org and report
         # such issues
-        except AssertionError, message:
+        except AssertionError as e:
             # sometimes this test can fail. In such case, i log the error
-            logger.error(message)
+            logger.error(e)
             logger.error("Sometimes 'test_getTaxonomyById' fails. This could be a transitory problem on EnsEMBL REST service")
         
     def test_getTaxonomyByName(self):
@@ -1191,7 +1196,7 @@ class EnsemblRestOverlap(EnsemblRest):
     def test_getRegulatoryFeatureById(self):
         """Testing get regulatory Feature GET method"""
         
-        curl_cmd = """curl 'http://rest.ensembl.org/regulatory/human/ENSR00000099113?' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'http://rest.ensembl.org/regulatory/species/human/id/ENSR00000099113?' -H 'Content-type:application/json'"""
         
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
@@ -1259,10 +1264,10 @@ class EnsemblRestSequence(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
       
         # execute EnsemblRest function
-        test = self.EnsEMBL.getSequenceByRegion(species='human', region='X:1000000..1000100')
+        test = self.EnsEMBL.getSequenceByRegion(species='human', region='X:1000000..1000100:1')
         
         # testing values
-        self.assertEqual(reference, test)
+        self.assertTrue(compareDict(reference, test))
         
     def test_getSequenceByMultipleRegions(self):
         """Testing get sequence by region POST method"""
