@@ -305,22 +305,22 @@ class EnsemblRest(object):
         
         logger.debug("Got %s" % resp.text)
         
-        #record response for debug intent
+        # Record response for debug intent
         self.last_response = resp
         
-        # initialize some values. Check if I'm rate limited
+        # Initialize some values. Check if I'm rate limited
         self.rate_reset, self.rate_limit, self.rate_remaining, self.retry_after = self.__get_rate_limit(resp.headers)
         
         # parse status code
         if self.__check_retry(resp):
             return self.__retry_request()
 
-        #handle content in different way relying on content-type
+        # Handle content in different way relying on content-type
         if content_type == 'application/json':
             content = json.loads(resp.text)
         
         else:
-            #default 
+            # Default
             content = resp.text
             
         return content
@@ -349,8 +349,11 @@ class EnsemblRest(object):
                     
                     # return true if retry needed
                     return True
-            
-            if resp.status_code == 429:
+            elif resp.status_code == 500:
+                # Retrying when we get a 500 error.
+                # Due to Ensembl's condition on randomly returning 500s on valid requests.
+                return True
+            elif resp.status_code == 429:
                 ExceptionType = EnsemblRestRateLimitError
 
             raise ExceptionType(
@@ -408,9 +411,13 @@ class EnsemblRest(object):
             message = ensembl_http_status_codes[self.last_response.status_code][1]
             
             # parse error if possible
-            json_message = json.loads(self.last_response.text)
-            if "error" in json_message:
-                message = json_message["error"]
+            try:
+                json_message = json.loads(self.last_response.text)
+                if "error" in json_message:
+                    message = json_message["error"]
+            except ValueError:
+                # In this case we didn't even get a JSON back.
+                message = "Server returned invalid JSON."
         
             raise EnsemblRestError("Max number of retries attempts reached. Last message was: %s"
                                    % message,
