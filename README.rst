@@ -2,7 +2,7 @@
 pyEnsemblRest
 =============
 
-``pyEnsemblRest`` is a simple Python wrapper around the EnsEMBL REST API
+``pyEnsemblRest`` is a simple Python client for the Ensembl REST API
 
 .. image:: https://travis-ci.org/pyOpenSci/pyEnsemblRest.svg?branch=master
     :target: https://travis-ci.org/pyOpenSci/pyEnsemblRest
@@ -35,9 +35,9 @@ pyEnsemblRest
 License
 =======
 
-pyEnsemblRest - A wrapper for the EnsEMBL REST API
+pyEnsemblRest - A client for the Ensembl REST API written in the Python programming language
 
-Copyright (C) 2013-2016, Steve Moss
+Copyright (C) 2013-2020, Steve Moss
 
 pyEnsemblRest is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
