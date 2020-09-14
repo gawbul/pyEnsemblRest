@@ -18,15 +18,12 @@
     along with pyEnsemblRest.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-
-
-
 from setuptools import setup
 from setuptools import find_packages
 
 __author__ = 'Steve Moss'
 __email__ = 'gawbul@gmail.com'
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 setup(
     # Basic package information.
@@ -41,7 +38,7 @@ setup(
     install_requires=['requests>=1.0.0'],
 
     # testing modules
-    test_suite = "test",
+    test_suite="test",
 
     # Metadata for PyPI.
     author='Steve Moss',
