@@ -150,7 +150,7 @@ class EnsemblRest(object):
         """Check for mandatory parameters"""
         
         #Verify required variables and raise an Exception if needed
-        mandatory_params = re.findall('\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', func['url'])
+        mandatory_params = re.findall(r'\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', func['url'])
         
         for param in mandatory_params:
             if param not in kwargs:
@@ -170,7 +170,7 @@ class EnsemblRest(object):
         mandatory_params = self.__check_params(func, kwargs)
         
         # resolving urls
-        url = re.sub('\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)),
+        url = re.sub(r'\{\{(?P<m>[a-zA-Z1-9_]+)\}\}', lambda m: "%s" % kwargs.get(m.group(1)),
                      self.session.base_url + func['url'])
         
         # debug
