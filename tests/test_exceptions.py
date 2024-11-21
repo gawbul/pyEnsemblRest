@@ -1,9 +1,8 @@
 import time
 import unittest
 
-from requests import Response
-
 import pyensemblrest
+from pyensemblrest.ensemblrest import FakeResponse
 from pyensemblrest.exceptions import (
     EnsemblRestError,
     EnsemblRestRateLimitError,
@@ -148,15 +147,12 @@ class EnsemblRest(unittest.TestCase):
         # raise last_attempt number
         self.EnsEMBL.last_attempt = self.EnsEMBL.max_attempts
 
-        # create a fake request.Response class
-        class FakeResponse:
-            def __init__(self, resp: Response):
-                self.headers = resp.headers
-                self.status_code = 400
-                self.text = """{"error":"something bad has happened"}"""
-
         # instantiate a fake response
-        fakeResponse = FakeResponse(response)
+        fakeResponse = FakeResponse(
+            headers=response.headers,
+            status_code=400,
+            text="""{"error":"something bad has happened"}""",
+        )
 
         # verify exception
         self.assertRaisesRegex(
@@ -177,8 +173,14 @@ class EnsemblRest(unittest.TestCase):
         self.assertRaisesRegex(
             EnsemblRestError,
             "Max number of retries attempts reached.* timeout",
-            self.EnsEMBL.getGeneTreeById,
-            id="ENSGT00390000003602",
+            self.EnsEMBL.searchGA4GHFeatures,
+            parentId="ENST00000408937.7",
+            featureSetId="",
+            featureTypes=["cds"],
+            end=220023,
+            referenceName="X",
+            start=197859,
+            pageSize=1,
         )
 
 

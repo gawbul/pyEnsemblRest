@@ -8,14 +8,14 @@ import unittest
 import urllib.parse
 from typing import Any
 
+import pytest
 from requests import Response
 
 import pyensemblrest
-from pyensemblrest.ensemblrest import FakeResponse
+from pyensemblrest.ensemblrest import FakeResponse, ensembl_user_agent
 
 # logger instance
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
 
 # create console handler and set level to debug. NullHandler to put all into /dev/null
 # ch = logging.NullHandler()
@@ -67,7 +67,7 @@ def launch(cmd: str) -> str:
         logger.debug(stderr)
 
     # debug
-    logger.debug("Got: %s" % (stdout))
+    # logger.debug("Got: %s" % (stdout))
 
     return stdout
 
@@ -116,26 +116,22 @@ def _genericCMP(v1: Any, v2: Any) -> bool:
     logger.debug("Check %s == %s" % (v1, v2))
 
     # check that types are the same
-    if type(v1) is type(v2):
+    if type(v1) is not type(v2):
         return False
-
     elif isinstance(v1, dict):
         # call comparedict
         if compareDict(v1, v2) is False:
             return False
-
     elif isinstance(v1, list):
         # call comparedict
         if compareList(v1, v2) is False:
             return False
-
     elif isinstance(v1, (str, float, int)):
         if v1 != v2:
             return False
-
     else:
         logger.error("%s <> %s" % (v1, v2))
-        logger.critical("Case not implemented: type:%s" % (type(v1)))
+        logger.critical("Case not implemented: type: %s" % (type(v1)))
 
     # default value
     return True
@@ -173,7 +169,7 @@ def compareDict(d1: dict[Any, Any], d2: dict[Any, Any]) -> bool:
 
         # the species key may differ in some cases: ex: Tgut-Mgal-Ggal[3] <> Ggal-Mgal-Tgut[3]
         if k in ["species", "tree"] and isinstance(v1, str) and isinstance(v2, str):
-            pattern = re.compile("([\w]+)-?(?:\[\d\])?")
+            pattern = re.compile(r"([\w]+)-?(?:\[\d\])?")
 
             # override values
             v1 = re.findall(pattern, v1)
@@ -188,12 +184,13 @@ def compareDict(d1: dict[Any, Any], d2: dict[Any, Any]) -> bool:
 
 
 def compareList(l1: list[Any], l2: list[Any]) -> bool:
-    """A function to evaluate if two python complex list are the same"""
+    """A function to evaluate if two python complex lists are the same"""
 
+    # check if lists are equal
     if l1 == l2:
         return True
 
-    # check lengths
+    # check if lengths are equal
     if len(l1) != len(l2):
         return False
 
@@ -228,11 +225,15 @@ def compareList(l1: list[Any], l2: list[Any]) -> bool:
 
 def compareNested(obj1: Any, obj2: Any) -> bool:
     """Compare complex nested objects."""
+    logger.debug("DEBUG: {} {}".format(type(obj1), type(obj2)))
     if isinstance(obj1, dict) and isinstance(obj2, dict):
+        logger.debug("compareDict")
         return compareDict(obj1, obj2)
     if isinstance(obj1, list) and isinstance(obj2, list):
+        logger.debug("compareList")
         return compareList(obj1, obj2)
     else:
+        logger.debug("Compare ==")
         return obj1 == obj2
 
 
@@ -254,7 +255,7 @@ class EnsemblRestBase(EnsemblRest):
     def test_setHeaders(self) -> None:
         """Testing EnsemblRest with no headers provided"""
 
-        user_agent = pyensemblrest.ensembl_config.ensembl_user_agent
+        user_agent = ensembl_user_agent
         self.EnsEMBL = pyensemblrest.EnsemblRest(headers={})
         self.assertEqual(self.EnsEMBL.session.headers.get("User-Agent"), user_agent)
 
@@ -262,7 +263,6 @@ class EnsemblRestBase(EnsemblRest):
         """Testing EnsemblRest with no mandatory parameters"""
 
         self.assertRaisesRegex(
-            self,
             Exception,
             "mandatory param .* not specified",
             self.EnsEMBL.getArchiveById,
@@ -308,12 +308,14 @@ class EnsemblRestBase(EnsemblRest):
     def __something_bad(self, curl_cmd: str, last_response: Response) -> None:
         """A function to test 'something bad' message"""
 
-        # execute the curl cmd an get data as a dictionary
+        # execute the curl cmd and get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
 
         # instantiate a fake response
         fakeResponse = FakeResponse(
-            last_response, """{"error":"something bad has happened"}"""
+            headers=last_response.headers,
+            status_code=400,
+            text="""{"error":"something bad has happened"}""",
         )
         test = self.EnsEMBL.parseResponse(fakeResponse)
 
@@ -378,8 +380,9 @@ class EnsemblRestBase(EnsemblRest):
 
         # instantiate a fake response
         fakeResponse = FakeResponse(
-            response,
-            """{"error":"Something went wrong while fetching from LDFeatureContainerAdaptor"}""",
+            headers=response.headers,
+            status_code=400,
+            text="""{"error":"Something went wrong while fetching from LDFeatureContainerAdaptor"}""",
         )
         test = self.EnsEMBL.parseResponse(fakeResponse)
 
@@ -495,7 +498,7 @@ class EnsemblRestComparative(EnsemblRest):
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/id/"""
-            """ENSG00000157764?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
+            """homo_sapiens/ENSG00000157764?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
@@ -505,8 +508,7 @@ class EnsemblRestComparative(EnsemblRest):
         # since text/x-phyloxml+xml may change elements order
         test = self.EnsEMBL.getCafeGeneTreeMemberById(
             id="ENSG00000157764",
-            prune_species="cow",
-            prune_taxon=9526,
+            species="homo_sapiens",
             content_type="application/json",
         )
 
@@ -567,7 +569,7 @@ class EnsemblRestComparative(EnsemblRest):
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/genetree/member/id/"""
-            """ENSG00000157764?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
+            """homo_sapiens/ENSG00000157764?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
@@ -577,8 +579,7 @@ class EnsemblRestComparative(EnsemblRest):
         # since text/x-phyloxml+xml may change elements order
         test = self.EnsEMBL.getGeneTreeMemberById(
             id="ENSG00000157764",
-            prune_species="cow",
-            prune_taxon=9526,
+            species="homo_sapiens",
             content_type="application/json",
         )
 
@@ -594,8 +595,8 @@ class EnsemblRestComparative(EnsemblRest):
         """Test get genomic alignment region GET method"""
 
         curl_cmd = (
-            """curl 'https://rest.ensembl.org/alignment/region/taeniopygia_guttata/"""
-            """2:106040000-106040050:1?species_set_group=sauropsids' -H 'Content-type:application/json'"""
+            """curl 'https://rest.ensembl.org/alignment/region/homo_sapiens/"""
+            """X:1000000..1000100:1?species_set_group=mammals' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
@@ -603,9 +604,9 @@ class EnsemblRestComparative(EnsemblRest):
 
         # execute EnsemblRest function. Dealing with application/json is simpler
         test = self.EnsEMBL.getAlignmentByRegion(
-            species="taeniopygia_guttata",
-            region="2:106040000-106040050:1",
-            species_set_group="sauropsids",
+            species="homo_sapiens",
+            region="X:1000000..1000100:1",
+            species_set_group="mammals",
         )
 
         # testing values. Values in list can have different order
@@ -614,14 +615,19 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getHomologyById(self) -> None:
         """test get homology by Id GET method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/homology/id/ENSG00000157764?' -H 'Content-type:application/json'"""
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/homology/id/homo_sapiens/ENSG00000157764?' """
+            """-H 'Content-type:application/json'"""
+        )
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         #  since text/x-phyloxml+xml may change elements order
-        test = self.EnsEMBL.getHomologyById(id="ENSG00000157764")
+        test = self.EnsEMBL.getHomologyById(
+            id="ENSG00000157764", species="homo_sapiens"
+        )
 
         # testing values. Since json are nested dictionary and lists,
         # and they are not hashable, I need to order list before checking equality,
@@ -742,36 +748,50 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    # KEEPS TIMING OUT
-    # TODO - check here if working again
-    # https://rest.ensembl.org/info/biotypes/homo_sapiens
-    # def test_getInfoBiotypes(self) -> None:
-    #     """Testing Info BioTypes GET method"""
+    # @pytest.mark.skip(reason="Keeps timing out - check if working here https://rest.ensembl.org/info/biotypes/homo_sapiens")
+    def test_getInfoBiotypes(self) -> None:
+        """Testing Info BioTypes GET method"""
 
-    #     curl_cmd = """curl 'https://rest.ensembl.org/info/biotypes/homo_sapiens?' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'https://rest.ensembl.org/info/biotypes/homo_sapiens?' -H 'Content-type:application/json'"""
 
-    #     # execute the curl cmd an get data as a dictionary
-    #     reference = jsonFromCurl(curl_cmd)
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
 
-    #     # execute EnsemblRest function
-    #     test = self.EnsEMBL.getInfoBiotypes(species="homo_sapiens")
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoBiotypes(species="homo_sapiens")
 
-    #     # testing values
-    #     self.assertTrue(compareNested(reference, test))
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getInfoBiotypesByGroup(self) -> None:
         """Testing Info BioTypes by Group GET method"""
 
-        # TODO
+        curl_cmd = """curl 'https://rest.ensembl.org/info/biotypes/groups/coding/gene?' -H 'Content-type:application/json'"""
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoBiotypesByGroup(group="coding", object_type="gene")
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getInfoBiotypesByName(self) -> None:
         """Testing Info BioTypes by Name GET method"""
 
-        # TODO
+        curl_cmd = """curl 'https://rest.ensembl.org/info/biotypes/name/protein_coding/gene?' -H 'Content-type:application/json'"""
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoBiotypesByName(
+            name="protein_coding", object_type="gene"
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getInfoComparaMethods(self) -> None:
         """Testing Info Compara Methods GET method"""
@@ -882,16 +902,14 @@ class EnsemblRestInfo(EnsemblRest):
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/info/genomes/"""
-            """campylobacter_jejuni_subsp_jejuni_bh_01_0142?' -H 'Content-type:application/json'"""
+            """homo_sapiens?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getInfoGenomesByName(
-            name="campylobacter_jejuni_subsp_jejuni_bh_01_0142"
-        )
+        test = self.EnsEMBL.getInfoGenomesByName(name="homo_sapiens")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -908,7 +926,7 @@ class EnsemblRestInfo(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getInfoGenomesByAccession(division="U00096")
+        test = self.EnsEMBL.getInfoGenomesByAccession(accession="U00096")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -917,7 +935,7 @@ class EnsemblRestInfo(EnsemblRest):
         """Testing Info Genomes by Assembly GET method"""
 
         curl_cmd = (
-            """curl 'https://rest.ensembl.org/info/genomes/assembly/GCA_000005845?' """
+            """curl 'https://rest.ensembl.org/info/genomes/assembly/GCA_902167145.1?' """
             """-H 'Content-type:application/json'"""
         )
 
@@ -925,7 +943,7 @@ class EnsemblRestInfo(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getInfoGenomesByAssembly(division="GCA_000005845")
+        test = self.EnsEMBL.getInfoGenomesByAssembly(assembly_id="GCA_902167145.1")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -959,7 +977,7 @@ class EnsemblRestInfo(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getInfoGenomesByTaxonomy(division="Arabidopsis")
+        test = self.EnsEMBL.getInfoGenomesByTaxonomy(taxon_name="Arabidopsis")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -1033,8 +1051,8 @@ class EnsemblRestInfo(EnsemblRest):
                 "Sometimes 'test_getInfoSpecies' fails. This could be a transitory problem on EnsEMBL REST service"
             )
 
-    def test_getInfoVariation(self) -> None:
-        """Testing Info Variation GET method"""
+    def test_getInfoVariationBySpecies(self) -> None:
+        """Testing Info Variation by species GET method"""
 
         curl_cmd = """curl 'https://rest.ensembl.org/info/variation/homo_sapiens?' -H 'Content-type:application/json'"""
 
@@ -1042,7 +1060,7 @@ class EnsemblRestInfo(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getInfoVariation(species="homo_sapiens")
+        test = self.EnsEMBL.getInfoVariationBySpecies(species="homo_sapiens")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -1050,16 +1068,36 @@ class EnsemblRestInfo(EnsemblRest):
     def test_getInfoVariationConsequenceTypes(self) -> None:
         """Testing Info Variation Consequence Types GET method"""
 
-        # TODO
+        curl_cmd = """curl 'https://rest.ensembl.org/info/variation/consequence_types?' -H 'Content-type:application/json'"""
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoVariationConsequenceTypes()
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getInfoVariationPopulationIndividuals(self) -> None:
         """Testing Info Variation Population Individuals GET method"""
 
-        # TODO
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/info/variation/populations/human/1000GENOMES:phase_3:ASW?' """
+            """-H 'Content-type:application/json'"""
+        )
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getInfoVariationPopulationIndividuals(
+            species="human",
+            population_name="1000GENOMES:phase_3:ASW",
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getInfoVariationPopulations(self) -> None:
         """Testing Info Variation Populations GET method"""
@@ -1467,13 +1505,13 @@ class EnsemblRestOT(EnsemblRest):
     def test_getTaxonomyByName(self) -> None:
         """Testing get taxonomy by name GET method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/taxonomy/name/Homo%25?' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'https://rest.ensembl.org/taxonomy/name/human?' -H 'Content-type:application/json'"""
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getTaxonomyByName(name="Homo%25")
+        test = self.EnsEMBL.getTaxonomyByName(name="human")
 
         # testing values. Since json are nested dictionary and lists, and they are not hashable,
         # I need to order list before checking equality,
@@ -1548,30 +1586,76 @@ class EnsemblRestPhenotypeAnnotations(EnsemblRest):
     def test_getPhenotypeByAccession(self) -> None:
         """Testing get phenotype by accession GET method"""
 
-        # TODO
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/phenotype/accession/human/EFO:0003900?' """
+            """-H 'Content-type:application/json'"""
+        )
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getPhenotypeByAccession(
+            species="human", accession="EFO:0003900"
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getPhenotypeByGene(self) -> None:
         """Testing get phenotype by gene GET method"""
 
-        # TODO
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/phenotype/gene/human/ENSG00000157764?' """
+            """-H 'Content-type:application/json'"""
+        )
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getPhenotypeByGene(species="human", gene="ENSG00000157764")
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getPhenotypeByRegion(self) -> None:
         """Testing get phenotype by region GET method"""
 
-        # TODO
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/phenotype/region/human/9:22125500-22136000:1?' """
+            """-H 'Content-type:application/json'"""
+        )
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getPhenotypeByRegion(
+            species="human", region="9:22125500-22136000:1"
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getPhenotypeByTerm(self) -> None:
         """Testing get phenotype by term GET method"""
 
-        # TODO
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/phenotype/term/human/coffee%20consumption?' """
+            """-H 'Content-type:application/json'"""
+        )
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getPhenotypeByTerm(
+            species="human", term="coffee consumption"
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
 
 class EnsemblRestRegulation(EnsemblRest):
@@ -1589,7 +1673,9 @@ class EnsemblRestRegulation(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getRegulationBindingMatrix(species="human", id="ENSPFM0001")
+        test = self.EnsEMBL.getRegulationBindingMatrix(
+            species="human", binding_matrix="ENSPFM0001"
+        )
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -1738,7 +1824,7 @@ class EnsemblRestHaplotype(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getTranscripsHaplotypes(
+        test = self.EnsEMBL.getTranscriptHaplotypes(
             species="homo_sapiens", id="ENST00000288602"
         )
 
@@ -1749,17 +1835,17 @@ class EnsemblRestHaplotype(EnsemblRest):
 class EnsemblRestVEP(EnsemblRest):
     """A class to deal with ensemblrest Variant Effect Predictor methods"""
 
-    def test_getVariantConsequencesByHGVSnotation(self) -> None:
+    def test_getVariantConsequencesByHGVSNotation(self) -> None:
         """Testing get Variant Consequences by HFVS notation GET method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/vep/human/hgvs/AGT:c.803T>C?' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'https://rest.ensembl.org/vep/human/hgvs/ENST00000366667:c.803C>T?' -H 'Content-type:application/json'"""
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getVariantConsequencesByHGVSnotation(
-            species="human", hgvs_notation="AGT:c.803T>C"
+        test = self.EnsEMBL.getVariantConsequencesByHGVSNotation(
+            species="human", hgvs_notation="ENST00000366667:c.803C>T"
         )
 
         # testing values
@@ -1768,9 +1854,23 @@ class EnsemblRestVEP(EnsemblRest):
     def test_getVariantConsequencesByMultipleHGVSnotations(self) -> None:
         """Testing get variant consequences by multiple HFVS notations POST method"""
 
-        # TODO
+        curl_cmd = (
+            """curl -X POST 'https://rest.ensembl.org/vep/human/hgvs' """
+            """-d '{ "hgvs_notations" : ["ENST00000366667:c.803C>T", "9:g.22125504G>C"] }' """
+            """-H 'Content-type:application/json' -H 'Accept:application/json'"""
+        )
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariantConsequencesByMultipleHGVSNotations(
+            species="human",
+            hgvs_notations=["ENST00000366667:c.803C>T", "9:g.22125504G>C"],
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getVariantConsequencesById(self) -> None:
         """Testing get variant Consequences by id GET method"""
@@ -1901,16 +2001,36 @@ class EnsemblRestVariation(EnsemblRest):
     def test_getVariantRecoderById(self) -> None:
         """Testing get variant recoder by id GET method"""
 
-        # TODO
+        curl_cmd = """curl 'https://rest.ensembl.org/variant_recoder/human/rs56116432?' -H 'Content-type:application/json'"""
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariationRecoderById(id="rs56116432", species="human")
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getVariantRecoderByMultipleIds(self) -> None:
         """Testing get variant recoder by multiple ids POST method"""
 
-        # TODO
+        curl_cmd = (
+            """curl -X POST 'https://rest.ensembl.org/variant_recoder/human' """
+            """-d '{ "ids" : ["rs56116432", "rs1042779" ] }' """
+            """-H 'Content-type:application/json' -H 'Accept:application/json' """
+        )
 
-        return
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariationRecoderByMultipleIds(
+            ids=["rs56116432", "rs1042779"], species="human"
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     def test_getVariationById(self) -> None:
         """Testing get variation by id GET method"""
@@ -1926,17 +2046,15 @@ class EnsemblRestVariation(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.skip(reason="TODO")
     def test_getVariationByPMCID(self) -> None:
         """Testing get variation by pmcid GET method"""
 
-        # TODO
-
         return
 
+    @pytest.mark.skip(reason="TODO")
     def test_getVariationByPMID(self) -> None:
         """Testing get variation by pmid GET method"""
-
-        # TODO
 
         return
 
@@ -1983,38 +2101,33 @@ class EnsemblRestVariation(EnsemblRest):
 class EnsemblRestVariationGA4GH(EnsemblRest):
     """A class to deal with ensemblrest variation GA4GH methods"""
 
+    @pytest.mark.skip(reason="TODO")
     def test_getGA4GHBeacon(self) -> None:
         """Testing get GA4GH beacon GET method"""
 
-        # TODO
-
         return
 
+    @pytest.mark.skip(reason="TODO")
     def test_getGA4GHBeaconQuery(self) -> None:
         """Testing get GA4GH beacon query GET method"""
 
-        # TODO
-
         return
 
+    @pytest.mark.skip(reason="TODO")
     def test_postGA4GHBeaconQuery(self) -> None:
         """Testing get GA4GH beacon query POST method"""
 
-        # TODO
-
         return
 
+    @pytest.mark.skip(reason="TODO")
     def test_getGA4GHFeatures(self) -> None:
         """Testing get GA4GH features GET method"""
 
-        # TODO
-
         return
 
+    @pytest.mark.skip(reason="TODO")
     def test_searchGA4GHFeatures(self) -> None:
         """Testing GA4GH features search POST method"""
-
-        # TODO
 
         return
 
@@ -2049,7 +2162,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    def test_searchGA4GHDataset(self) -> None:
+    def test_searchGA4GHDatasets(self) -> None:
         """Testing GA4GH search dataset POST method"""
 
         curl_cmd = (
@@ -2061,12 +2174,12 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.searchGA4GHDataset(pageSize=3)
+        test = self.EnsEMBL.searchGA4GHDatasets(pageSize=3)
 
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    def test_getGA4GHDatasetById(self) -> None:
+    def test_getGA4GHDatasetsById(self) -> None:
         """Testing GA4GH get dataset by Id GET method"""
 
         curl_cmd = (
@@ -2078,7 +2191,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getGA4GHDatasetById(id="6e340c4d1e333c7a676b1710d2e3953c")
+        test = self.EnsEMBL.getGA4GHDatasetsById(id="6e340c4d1e333c7a676b1710d2e3953c")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -2086,35 +2199,30 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
     def test_searchGA4GHFeatureset(self) -> None:
         """Testing GA4GH featureset search POST method"""
 
-        # TODO
-
         return
 
     def test_getGA4GHFeaturesetById(self) -> None:
         """Testing get GA4GH featureset GET method"""
-
-        # TODO
 
         return
 
     def test_getGA4GHVariantsById(self) -> None:
         """Testing GA4GH get variant by Id GET method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/variants/1:rs1333049?' -H 'Content-type:application/json'"""
+        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/variants/1:rs61752113?' -H 'Content-type:application/json'"""
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getGA4GHVariantsById(id="1:rs1333049")
+        test = self.EnsEMBL.getGA4GHVariantsById(id="1:rs61752113")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.skip(reason="TODO")
     def test_searchGA4GHVariantAnnotations(self) -> None:
         """Testing GA4GH variant annotations search POST method"""
-
-        # TODO
 
         return
 
@@ -2123,8 +2231,9 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/ga4gh/variants/search' -H 'Content-type:application/json' """
-            """-H 'Accept:application/json' -X POST -d '{ "variantSetId": 1, "referenceName": """
-            """22,"start": 17190024 ,"end":  17671934 ,  "pageToken":"", "pageSize": 1 }'"""
+            """-H 'Accept:application/json' -X POST -d '{ "variantSetId": 1, "referenceName": 22,"""
+            """"start": 17190024, "end": 17671934, "callSetIds":["1:NA19777", "1:HG01242", "1:HG01142"],"""
+            """"pageToken":"", "pageSize": 1 }'"""
         )
 
         # execute the curl cmd an get data as a dictionary
@@ -2136,6 +2245,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
             referenceName=22,
             start=17190024,
             end=17671934,
+            callSetIds=["1:NA19777", "1:HG01242", "1:HG01142"],
             pageToken="",
             pageSize=1,
         )
@@ -2211,7 +2321,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    def test_searchGA4GHReferenceSets(self) -> None:
+    def test_searchGA4GHReferencesets(self) -> None:
         """Testing GA4GH search reference sets POST method"""
 
         curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/referencesets/search' -H 'Content-type:application/json' \
@@ -2221,7 +2331,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.searchGA4GHReferenceSets()
+        test = self.EnsEMBL.searchGA4GHReferencesets()
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -2235,22 +2345,20 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getGA4GHReferenceSetsById(id="GRCh38")
+        test = self.EnsEMBL.getGA4GHReferencesetsById(id="GRCh38")
 
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.skip(reason="TODO")
     def test_searchGA4GHVariantAnnotationsets(self) -> None:
         """Testing GA4GH variant annotation sets search POST method"""
 
-        # TODO
-
         return
 
+    @pytest.mark.skip(reason="TODO")
     def test_getGA4GHVariantAnnotationsets(self) -> None:
         """Testing get GA4GH variant annotation sets GET method"""
-
-        # TODO
 
         return
 

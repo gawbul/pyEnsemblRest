@@ -30,9 +30,14 @@ logger = logging.getLogger(__name__)
 
 # FakeResponse object
 class FakeResponse(object):
-    def __init__(self, response: Response | Any, text: str = ""):
-        self.headers: CaseInsensitiveDict[str] | dict[str, Any] = response.headers
-        self.status_code: int = 400
+    def __init__(
+        self,
+        headers: CaseInsensitiveDict[str] | dict[str, Any],
+        status_code: int,
+        text: str,
+    ):
+        self.headers = headers
+        self.status_code = status_code
         self.text: str = text
 
 
@@ -65,7 +70,7 @@ class EnsemblRest(object):
         self.last_data: dict[Any, Any] = {}
         self.last_method: str = ""
         self.last_attempt: int = 0
-        self.last_response: Response | FakeResponse
+        self.last_response: Response | FakeResponse = Response()
 
         # the maximum number of attempts
         self.max_attempts: int = 5
@@ -270,7 +275,7 @@ class EnsemblRest(object):
             self.req_count = 0
 
         # my response
-        resp: Response | FakeResponse
+        resp: Response | FakeResponse = Response()
 
         # deal with exceptions
         try:
@@ -301,8 +306,9 @@ class EnsemblRest(object):
 
             # create a fake response in order to redo the query
             resp = FakeResponse(
-                self.last_response,
-                json.dumps(
+                headers=self.last_response.headers,
+                status_code=400,
+                text=json.dumps(
                     {"message": repr(e), "error": "%s timeout" % ensembl_user_agent}
                 ),
             )
@@ -339,7 +345,6 @@ class EnsemblRest(object):
         # Handle content in different way relying on content-type
         if content_type == "application/json":
             content = json.loads(resp.text)
-
         else:
             # Default
             content = resp.text
@@ -392,7 +397,7 @@ class EnsemblRest(object):
     @staticmethod
     def __get_rate_limit(
         headers: CaseInsensitiveDict[str] | dict[str, Any],
-    ) -> tuple[int | None, int | None, int | None, float | None, None]:
+    ) -> tuple[int | None, int | None, int | None, float | None, int | None]:
         """Read rate limited attributes"""
 
         # initialize some values
@@ -410,7 +415,7 @@ class EnsemblRest(object):
             logger.debug("X-RateLimit-Reset: %s" % rate_reset)
 
         if "X-RateLimit-Period".lower() in keys:
-            rate_reset = int(headers["X-RateLimit-Period"])
+            rate_period = int(headers["X-RateLimit-Period"])
             logger.debug("X-RateLimit-Period: %s" % rate_period)
 
         if "X-RateLimit-Limit".lower() in keys:
