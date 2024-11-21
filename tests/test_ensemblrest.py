@@ -393,12 +393,12 @@ class EnsemblRestBase(EnsemblRest):
         """Deal with the {"error":"something bad has happened"} message using a POST method"""
 
         curl_cmd = (
-            """curl 'https://rest.ensembl.org/archive/id' -H 'Content-type:application/json' """
-            """-H 'Accept:application/json' -X POST -d '{ "id" : ["ENSG00000157764", "ENSG00000248378"] }'"""
+            """curl 'https://rest.ensembl.org/lookup/id' -H 'Content-type:application/json' """
+            """-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
         )
 
         # execute EnsemblRest function
-        self.EnsEMBL.getArchiveByMultipleIds(id=["ENSG00000157764", "ENSG00000248378"])
+        self.EnsEMBL.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378"])
 
         # retrieve last_reponse
         last_response = self.EnsEMBL.last_response
