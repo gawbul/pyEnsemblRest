@@ -5,7 +5,13 @@ install:
 	poetry install --sync
 
 unit-test:
-	poetry run pytest -v
+	poetry run pytest -v -m "not live"
+
+ci-test:
+	poetry run pytest -v --cov=pyensemblrest --cov-report lcov:./tests/lcov.info
+
+coverage:
+	poetry run coveralls
 
 type-check:
 	poetry run mypy . --no-incremental

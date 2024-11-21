@@ -225,15 +225,11 @@ def compareList(l1: list[Any], l2: list[Any]) -> bool:
 
 def compareNested(obj1: Any, obj2: Any) -> bool:
     """Compare complex nested objects."""
-    logger.debug("DEBUG: {} {}".format(type(obj1), type(obj2)))
     if isinstance(obj1, dict) and isinstance(obj2, dict):
-        logger.debug("compareDict")
         return compareDict(obj1, obj2)
     if isinstance(obj1, list) and isinstance(obj2, list):
-        logger.debug("compareList")
         return compareList(obj1, obj2)
     else:
-        logger.debug("Compare ==")
         return obj1 == obj2
 
 
@@ -247,6 +243,60 @@ class EnsemblRest(unittest.TestCase):
     def tearDown(self) -> None:
         """Sleep a while before doing next request"""
         time.sleep(WAIT)
+
+
+class EnsemblRestHelper(EnsemblRest):
+    """A class to deal with ensemblrest helper methods"""
+
+    def test_compareNestedDict(self) -> None:
+        reference = {
+            "one": ["bar", "foo"],
+            "two": ["test", "this"],
+            "three": ["foo", "bar"],
+            "four": ["this", "test"],
+        }
+
+        test = {
+            "two": ["test", "this"],
+            "four": ["this", "test"],
+            "three": ["foo", "bar"],
+            "one": ["bar", "foo"],
+        }
+
+        self.assertTrue(compareNested(reference, test))
+
+    def test_compareNestedList(self) -> None:
+        reference = [
+            {
+                "one": ["bar", "foo"],
+                "two": ["test", "this"],
+                "three": ["foo", "bar"],
+                "four": ["this", "test"],
+            },
+            {
+                "one": ["bar", "foo"],
+                "two": ["test", "this"],
+                "three": ["foo", "bar"],
+                "four": ["this", "test"],
+            },
+        ]
+
+        test = [
+            {
+                "two": ["test", "this"],
+                "four": ["this", "test"],
+                "three": ["foo", "bar"],
+                "one": ["bar", "foo"],
+            },
+            {
+                "two": ["test", "this"],
+                "four": ["this", "test"],
+                "three": ["foo", "bar"],
+                "one": ["bar", "foo"],
+            },
+        ]
+
+        self.assertTrue(compareNested(reference, test))
 
 
 class EnsemblRestBase(EnsemblRest):
@@ -268,6 +318,7 @@ class EnsemblRestBase(EnsemblRest):
             self.EnsEMBL.getArchiveById,
         )
 
+    # TODO: Fix this???
     def test_wait4request(self) -> None:
         """Simulating max request per second"""
 
@@ -342,12 +393,12 @@ class EnsemblRestBase(EnsemblRest):
         """Deal with the {"error":"something bad has happened"} message using a POST method"""
 
         curl_cmd = (
-            """curl 'https://rest.ensembl.org/lookup/id' -H 'Content-type:application/json' """
-            """-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
+            """curl 'https://rest.ensembl.org/archive/id' -H 'Content-type:application/json' """
+            """-H 'Accept:application/json' -X POST -d '{ "id" : ["ENSG00000157764", "ENSG00000248378"] }'"""
         )
 
         # execute EnsemblRest function
-        self.EnsEMBL.getLookupByMultipleIds(ids=["ENSG00000157764", "ENSG00000248378"])
+        self.EnsEMBL.getArchiveByMultipleIds(id=["ENSG00000157764", "ENSG00000248378"])
 
         # retrieve last_reponse
         last_response = self.EnsEMBL.last_response
@@ -394,6 +445,7 @@ class EnsemblRestBase(EnsemblRest):
 class EnsemblRestArchive(EnsemblRest):
     """A class to deal with ensemblrest archive methods"""
 
+    @pytest.mark.live
     def test_getArchiveById(self) -> None:
         """Test archive GET endpoint"""
 
@@ -409,6 +461,7 @@ class EnsemblRestArchive(EnsemblRest):
         # testing values
         self.assertDictEqual(reference, test)
 
+    @pytest.mark.live
     def test_getXMLArchiveById(self) -> None:
         """text archive GET endpoint returning XML"""
 
@@ -426,6 +479,7 @@ class EnsemblRestArchive(EnsemblRest):
         # testing values
         self.assertEqual(reference, test)
 
+    @pytest.mark.live
     def test_getArchiveByMultipleIds(self) -> None:
         """Test archive POST endpoint"""
 
@@ -449,6 +503,7 @@ class EnsemblRestArchive(EnsemblRest):
 class EnsemblRestComparative(EnsemblRest):
     """A class to deal with ensemblrest comparative genomics methods"""
 
+    @pytest.mark.live
     def test_getCafeGeneTreeById(self) -> None:
         """Test genetree by id GET method"""
 
@@ -469,6 +524,7 @@ class EnsemblRestComparative(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getCafeGeneTreeMemberBySymbol(self) -> None:
         """Test genetree by symbol GET method"""
 
@@ -493,6 +549,7 @@ class EnsemblRestComparative(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getCafeGeneTreeMemberById(self) -> None:
         """Test genetree by member id GET method"""
 
@@ -520,6 +577,7 @@ class EnsemblRestComparative(EnsemblRest):
         # and I need to ensure that dictionaries have the same keys and values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGeneTreeById(self) -> None:
         """Test genetree by id GET method"""
 
@@ -540,6 +598,7 @@ class EnsemblRestComparative(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGeneTreeMemberBySymbol(self) -> None:
         """Test genetree by symbol GET method"""
 
@@ -564,6 +623,7 @@ class EnsemblRestComparative(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGeneTreeMemberById(self) -> None:
         """Test genetree by member id GET method"""
 
@@ -591,6 +651,7 @@ class EnsemblRestComparative(EnsemblRest):
         # and I need to ensure that dictionaries have the same keys and values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getAlignmentByRegion(self) -> None:
         """Test get genomic alignment region GET method"""
 
@@ -612,6 +673,7 @@ class EnsemblRestComparative(EnsemblRest):
         # testing values. Values in list can have different order
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getHomologyById(self) -> None:
         """test get homology by Id GET method"""
 
@@ -634,6 +696,7 @@ class EnsemblRestComparative(EnsemblRest):
         # and I need to ensure that dictionaries have the same keys and values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getHomologyBySymbol(self) -> None:
         """test get homology by symbol"""
 
@@ -655,6 +718,7 @@ class EnsemblRestComparative(EnsemblRest):
 class EnsemblRestXref(EnsemblRest):
     """A class to deal with ensemblrest cross references methods"""
 
+    @pytest.mark.live
     def test_getXrefsBySymbol(self) -> None:
         """Testing get XRef by Id GET method"""
 
@@ -672,6 +736,7 @@ class EnsemblRestXref(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getXrefsById(self) -> None:
         """Testing get XRef by Id GET method"""
 
@@ -686,6 +751,7 @@ class EnsemblRestXref(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getXrefsByName(self) -> None:
         """Testing get XRef by Id GET method"""
 
@@ -704,6 +770,7 @@ class EnsemblRestXref(EnsemblRest):
 class EnsemblRestInfo(EnsemblRest):
     """A class to deal with ensemblrest information methods"""
 
+    @pytest.mark.live
     def test_getInfoAnalysis(self) -> None:
         """Testing Info analysis GET method"""
 
@@ -718,6 +785,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoAssembly(self) -> None:
         """Testing Info assembly GET method"""
 
@@ -732,6 +800,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoAssemblyRegion(self) -> None:
         """Testing Info Assembly by region GET method"""
 
@@ -749,6 +818,7 @@ class EnsemblRestInfo(EnsemblRest):
         self.assertTrue(compareNested(reference, test))
 
     # @pytest.mark.skip(reason="Keeps timing out - check if working here https://rest.ensembl.org/info/biotypes/homo_sapiens")
+    @pytest.mark.live
     def test_getInfoBiotypes(self) -> None:
         """Testing Info BioTypes GET method"""
 
@@ -763,6 +833,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoBiotypesByGroup(self) -> None:
         """Testing Info BioTypes by Group GET method"""
 
@@ -777,6 +848,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoBiotypesByName(self) -> None:
         """Testing Info BioTypes by Name GET method"""
 
@@ -793,6 +865,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoComparaMethods(self) -> None:
         """Testing Info Compara Methods GET method"""
 
@@ -807,6 +880,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoComparaSpeciesSets(self) -> None:
         """Testing Info Compara Species Sets GET method"""
 
@@ -824,6 +898,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoComparas(self) -> None:
         """Testing Info Compara GET method"""
 
@@ -838,6 +913,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoData(self) -> None:
         """Testing Info Data GET method"""
 
@@ -852,6 +928,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoEgVersion(self) -> None:
         """Testing EgVersion GET method"""
 
@@ -866,6 +943,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoExternalDbs(self) -> None:
         """Testing Info External Dbs GET method"""
 
@@ -883,6 +961,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoDivisions(self) -> None:
         """Testing Info Divisions GET method"""
 
@@ -897,6 +976,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoGenomesByName(self) -> None:
         """Testing Info Genomes by Name GET method"""
 
@@ -914,6 +994,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoGenomesByAccession(self) -> None:
         """Testing Info Genomes by Accession GET method"""
 
@@ -931,6 +1012,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoGenomesByAssembly(self) -> None:
         """Testing Info Genomes by Assembly GET method"""
 
@@ -948,6 +1030,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoGenomesByDivision(self) -> None:
         """Testing Info Genomes by Division GET method"""
 
@@ -965,6 +1048,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoGenomesByTaxonomy(self) -> None:
         """Testing Info Genomes by Taxonomy GET method"""
 
@@ -982,6 +1066,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoPing(self) -> None:
         """Testing Info Ping GET method"""
 
@@ -996,6 +1081,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoRest(self) -> None:
         """Testing Info REST GET method"""
 
@@ -1010,6 +1096,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertEqual(reference, test)
 
+    @pytest.mark.live
     def test_getInfoSoftware(self) -> None:
         """Testing Info Software GET method"""
 
@@ -1024,6 +1111,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoSpecies(self) -> None:
         """Testing Info Species GET method"""
 
@@ -1035,22 +1123,9 @@ class EnsemblRestInfo(EnsemblRest):
         # execute EnsemblRest function
         test = self.EnsEMBL.getInfoSpecies(division="ensembl")
 
-        try:
-            # testing values. Since json are nested dictionary and lists, and they are not hashable,
-            # I need to order list before checking equality,
-            # and I need to ensure that dictionaries have the same keys and values
-            self.assertTrue(compareNested(reference, test))
+        self.assertTrue(compareNested(reference, test))
 
-        # The transitory failure seems to be related to a misconfiguration of ensembl
-        # rest service. In such cases is better to inform dev<at>ensembl.org and report
-        # such issues
-        except AssertionError as e:
-            # sometimes this test can fail. In such case, i log the error
-            logger.error(e)
-            logger.error(
-                "Sometimes 'test_getInfoSpecies' fails. This could be a transitory problem on EnsEMBL REST service"
-            )
-
+    @pytest.mark.live
     def test_getInfoVariationBySpecies(self) -> None:
         """Testing Info Variation by species GET method"""
 
@@ -1065,6 +1140,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoVariationConsequenceTypes(self) -> None:
         """Testing Info Variation Consequence Types GET method"""
 
@@ -1079,6 +1155,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoVariationPopulationIndividuals(self) -> None:
         """Testing Info Variation Population Individuals GET method"""
 
@@ -1099,6 +1176,7 @@ class EnsemblRestInfo(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getInfoVariationPopulations(self) -> None:
         """Testing Info Variation Populations GET method"""
 
@@ -1122,6 +1200,7 @@ class EnsemblRestInfo(EnsemblRest):
 class EnsemblRestLinkage(EnsemblRest):
     """A class to deal with ensemblrest linkage disequilibrium methods"""
 
+    @pytest.mark.live
     def test_getLdId(self) -> None:
         """Testing get LD ID GET method"""
 
@@ -1145,6 +1224,7 @@ class EnsemblRestLinkage(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getLdPairwise(self) -> None:
         """Testing get LD pairwise GET method"""
 
@@ -1168,6 +1248,7 @@ class EnsemblRestLinkage(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getLdRegion(self) -> None:
         """Testing get LD region GET method"""
 
@@ -1194,6 +1275,7 @@ class EnsemblRestLinkage(EnsemblRest):
 class EnsemblRestLookUp(EnsemblRest):
     """A class to deal with ensemblrest LookUp methods"""
 
+    @pytest.mark.live
     def test_getLookupById(self) -> None:
         """Testing get lookup by id GET method"""
 
@@ -1211,6 +1293,7 @@ class EnsemblRestLookUp(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getLookupByMultipleIds(self) -> None:
         """Testing get lookup id POST method"""
 
@@ -1230,6 +1313,7 @@ class EnsemblRestLookUp(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getLookupByMultipleIds_additional_arguments(self) -> None:
         """Testing get lookup id POST method with additional arguments"""
 
@@ -1249,6 +1333,7 @@ class EnsemblRestLookUp(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getLookupBySymbol(self) -> None:
         """Testing get lookup by species GET method"""
 
@@ -1268,6 +1353,7 @@ class EnsemblRestLookUp(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getLookupByMultipleSymbols(self) -> None:
         """Testing get lookup by species POST method"""
 
@@ -1287,6 +1373,7 @@ class EnsemblRestLookUp(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getLookupByMultipleSymbols_additional_arguments(self) -> None:
         """Testing get lookup by species POST method  with additional arguments"""
 
@@ -1311,6 +1398,7 @@ class EnsemblRestLookUp(EnsemblRest):
 class EnsemblRestMapping(EnsemblRest):
     """A class to deal with ensemblrest mapping methods"""
 
+    @pytest.mark.live
     def test_getMapCdnaToRegion(self) -> None:
         """Testing map CDNA to region GET method"""
 
@@ -1328,6 +1416,7 @@ class EnsemblRestMapping(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getMapCdsToRegion(self) -> None:
         """Testing map CDS to region GET method"""
 
@@ -1345,6 +1434,7 @@ class EnsemblRestMapping(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getMapAssemblyOneToTwo(self) -> None:
         """Testing converting coordinates between assemblies GET method"""
 
@@ -1367,6 +1457,7 @@ class EnsemblRestMapping(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getMapTranslationToRegion(self) -> None:
         """Testing converting protein(traslation) to genomic coordinates GET method"""
 
@@ -1390,6 +1481,7 @@ class EnsemblRestMapping(EnsemblRest):
 class EnsemblRestOT(EnsemblRest):
     """A class to deal with ensemblrest ontologies and taxonomy methods"""
 
+    @pytest.mark.live
     def test_getAncestorsById(self) -> None:
         """Testing get ancestors by id GET method"""
 
@@ -1407,6 +1499,7 @@ class EnsemblRestOT(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getAncestorsChartById(self) -> None:
         """Testing get ancestors chart by id GET method"""
 
@@ -1424,6 +1517,7 @@ class EnsemblRestOT(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getDescendantsById(self) -> None:
         """Testing get descendants by id GET method"""
 
@@ -1441,6 +1535,7 @@ class EnsemblRestOT(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getOntologyById(self) -> None:
         """Test get ontology by id GET method"""
 
@@ -1455,6 +1550,7 @@ class EnsemblRestOT(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getOntologyByName(self) -> None:
         """Test get ontology by name GET method"""
 
@@ -1472,6 +1568,7 @@ class EnsemblRestOT(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getTaxonomyClassificationById(self) -> None:
         """Testing get taxonomy classification by id GET method"""
 
@@ -1486,6 +1583,7 @@ class EnsemblRestOT(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getTaxonomyById(self) -> None:
         """Testing get Taxonomy by id GET method"""
 
@@ -1502,6 +1600,7 @@ class EnsemblRestOT(EnsemblRest):
         # and I need to ensure that dictionaries have the same keys and values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getTaxonomyByName(self) -> None:
         """Testing get taxonomy by name GET method"""
 
@@ -1522,6 +1621,7 @@ class EnsemblRestOT(EnsemblRest):
 class EnsemblRestOverlap(EnsemblRest):
     """A class to deal with ensemblrest overlap methods"""
 
+    @pytest.mark.live
     def test_getOverlapById(self) -> None:
         """Testing get Overlap by ID GET method"""
 
@@ -1539,6 +1639,7 @@ class EnsemblRestOverlap(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getOverlapByRegion(self) -> None:
         """Testing get Overlap by region GET method"""
 
@@ -1560,6 +1661,7 @@ class EnsemblRestOverlap(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getOverlapByTranslation(self) -> None:
         """Testing get Overlab by traslation GET method"""
 
@@ -1583,6 +1685,7 @@ class EnsemblRestOverlap(EnsemblRest):
 class EnsemblRestPhenotypeAnnotations(EnsemblRest):
     """A class to deal with ensemblrest phenotype annotations methods"""
 
+    @pytest.mark.live
     def test_getPhenotypeByAccession(self) -> None:
         """Testing get phenotype by accession GET method"""
 
@@ -1602,6 +1705,7 @@ class EnsemblRestPhenotypeAnnotations(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getPhenotypeByGene(self) -> None:
         """Testing get phenotype by gene GET method"""
 
@@ -1619,6 +1723,7 @@ class EnsemblRestPhenotypeAnnotations(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getPhenotypeByRegion(self) -> None:
         """Testing get phenotype by region GET method"""
 
@@ -1638,6 +1743,7 @@ class EnsemblRestPhenotypeAnnotations(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getPhenotypeByTerm(self) -> None:
         """Testing get phenotype by term GET method"""
 
@@ -1661,6 +1767,7 @@ class EnsemblRestPhenotypeAnnotations(EnsemblRest):
 class EnsemblRestRegulation(EnsemblRest):
     """A class to deal with ensemblrest regulation methods"""
 
+    @pytest.mark.live
     def test_getRegulationBindingMatrix(self) -> None:
         """Testing get regulation binding matrix GET method"""
 
@@ -1684,6 +1791,7 @@ class EnsemblRestRegulation(EnsemblRest):
 class EnsemblRestSequence(EnsemblRest):
     """A class to deal with ensemblrest sequence methods"""
 
+    @pytest.mark.live
     def test_getSequenceById(self) -> None:
         """Testing get sequence by ID GET method"""
 
@@ -1707,6 +1815,7 @@ class EnsemblRestSequence(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getSequenceByMultipleIds(self) -> None:
         """Testing get sequence by ID POST method"""
 
@@ -1726,6 +1835,7 @@ class EnsemblRestSequence(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getSequenceByMultipleIds_additional_arguments(self) -> None:
         """Testing getSequenceByMultipleIds with mask="soft" and expand_3prime=100"""
 
@@ -1746,6 +1856,7 @@ class EnsemblRestSequence(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getSequenceByRegion(self) -> None:
         """Testing get sequence by region GET method"""
 
@@ -1765,6 +1876,7 @@ class EnsemblRestSequence(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getSequenceByMultipleRegions(self) -> None:
         """Testing get sequence by region POST method"""
 
@@ -1785,6 +1897,7 @@ class EnsemblRestSequence(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getSequenceByMultipleRegions_additional_arguments(self) -> None:
         """Testing get sequence by region POST method with mask="soft" and expand_3prime=100"""
 
@@ -1812,6 +1925,7 @@ class EnsemblRestSequence(EnsemblRest):
 class EnsemblRestHaplotype(EnsemblRest):
     """A class to deal with ensemblrest transcript haplotypes methods"""
 
+    @pytest.mark.live
     def test_getTranscripsHaplotypes(self) -> None:
         """Testing get transcripts Haplotypes GET method"""
 
@@ -1835,6 +1949,7 @@ class EnsemblRestHaplotype(EnsemblRest):
 class EnsemblRestVEP(EnsemblRest):
     """A class to deal with ensemblrest Variant Effect Predictor methods"""
 
+    @pytest.mark.live
     def test_getVariantConsequencesByHGVSNotation(self) -> None:
         """Testing get Variant Consequences by HFVS notation GET method"""
 
@@ -1851,6 +1966,7 @@ class EnsemblRestVEP(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantConsequencesByMultipleHGVSnotations(self) -> None:
         """Testing get variant consequences by multiple HFVS notations POST method"""
 
@@ -1872,6 +1988,7 @@ class EnsemblRestVEP(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantConsequencesById(self) -> None:
         """Testing get variant Consequences by id GET method"""
 
@@ -1886,6 +2003,7 @@ class EnsemblRestVEP(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantConsequencesByMultipleIds(self) -> None:
         """Testing get variant Consequences by id POST method"""
 
@@ -1905,6 +2023,7 @@ class EnsemblRestVEP(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantConsequencesByMultipleIds_additional_arguments(self) -> None:
         """Testing get variant Consequences by id POST method using Blosum62=1, CSN=1"""
 
@@ -1925,6 +2044,7 @@ class EnsemblRestVEP(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantConsequencesByRegion(self) -> None:
         """Testing get variant consequences by Region GET method"""
 
@@ -1944,6 +2064,7 @@ class EnsemblRestVEP(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantConsequencesByMultipleRegions(self) -> None:
         """Testing get variant consequences by Region POST method"""
 
@@ -1968,6 +2089,7 @@ class EnsemblRestVEP(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantConsequencesByMultipleRegions_additional_arguments(self) -> None:
         """Testing get variant consequences by Region POST method Blosum62=1, CSN=1"""
 
@@ -1998,6 +2120,7 @@ class EnsemblRestVEP(EnsemblRest):
 class EnsemblRestVariation(EnsemblRest):
     """A class to deal with ensemblrest variation methods"""
 
+    @pytest.mark.live
     def test_getVariantRecoderById(self) -> None:
         """Testing get variant recoder by id GET method"""
 
@@ -2012,6 +2135,7 @@ class EnsemblRestVariation(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariantRecoderByMultipleIds(self) -> None:
         """Testing get variant recoder by multiple ids POST method"""
 
@@ -2032,6 +2156,7 @@ class EnsemblRestVariation(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariationById(self) -> None:
         """Testing get variation by id GET method"""
 
@@ -2058,6 +2183,7 @@ class EnsemblRestVariation(EnsemblRest):
 
         return
 
+    @pytest.mark.live
     def test_getVariationByMultipleIds(self) -> None:
         """Testing get variation by id POST method"""
 
@@ -2077,6 +2203,7 @@ class EnsemblRestVariation(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getVariationByMultipleIds_additional_arguments(self) -> None:
         """Testing get variation by id POST method with genotypes=1"""
 
@@ -2131,6 +2258,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
 
         return
 
+    @pytest.mark.live
     def test_searchGA4GHCallset(self) -> None:
         """Testing GA4GH callset search POST method"""
 
@@ -2148,6 +2276,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGA4GHCallsetById(self) -> None:
         """Testing get GA4GH callset by Id GET method"""
 
@@ -2162,6 +2291,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_searchGA4GHDatasets(self) -> None:
         """Testing GA4GH search dataset POST method"""
 
@@ -2179,6 +2309,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGA4GHDatasetsById(self) -> None:
         """Testing GA4GH get dataset by Id GET method"""
 
@@ -2196,16 +2327,19 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.skip(reason="TODO")
     def test_searchGA4GHFeatureset(self) -> None:
         """Testing GA4GH featureset search POST method"""
 
         return
 
+    @pytest.mark.skip(reason="TODO")
     def test_getGA4GHFeaturesetById(self) -> None:
         """Testing get GA4GH featureset GET method"""
 
         return
 
+    @pytest.mark.live
     def test_getGA4GHVariantsById(self) -> None:
         """Testing GA4GH get variant by Id GET method"""
 
@@ -2226,6 +2360,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
 
         return
 
+    @pytest.mark.live
     def test_searchGA4GHVariants(self) -> None:
         """Testing GA4GH search variants POST method"""
 
@@ -2253,6 +2388,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_searchGA4GHVariantsets(self) -> None:
         """Testing GA4GH search variantset POST method"""
 
@@ -2273,6 +2409,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGA4GHVariantsetsById(self) -> None:
         """Testing GA4GH get variantset by Id GET method"""
 
@@ -2287,11 +2424,15 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_searchGA4GHReferences(self) -> None:
         """Testing GA4GH search references POST method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/references/search' -H 'Content-type:application/json' \
--H 'Accept:application/json' -X POST -d '{ "referenceSetId": "GRCh38", "pageSize": 10 }'"""
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/ga4gh/references/search' """
+            """-H 'Content-type:application/json' -H 'Accept:application/json' """
+            """-X POST -d '{ "referenceSetId": "GRCh38", "pageSize": 10 }'"""
+        )
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
@@ -2302,6 +2443,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGA4GHReferencesById(self) -> None:
         """Testing GA4GH get references by Id GET method"""
 
@@ -2321,11 +2463,15 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_searchGA4GHReferencesets(self) -> None:
         """Testing GA4GH search reference sets POST method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/referencesets/search' -H 'Content-type:application/json' \
--H 'Accept:application/json' -X POST -d '{   }'"""
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/ga4gh/referencesets/search' """
+            """-H 'Content-type:application/json' -H 'Accept:application/json' """
+            """-X POST -d '{   }'"""
+        )
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
@@ -2336,6 +2482,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
+    @pytest.mark.live
     def test_getGA4GHReferenceSetsById(self) -> None:
         """Testing GA4GH get reference set by Id GET method"""
 
