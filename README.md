@@ -4,6 +4,8 @@
 
 [![GitHub Build Status](https://github.com/gawbul/pyEnsemblRest/actions/workflows/pull_request.yaml/badge.svg)](https://github.com/gawbul/pyEnsemblRest/actions/workflows/pull_request.yaml)
 
+[![GitHub Build Status](https://github.com/gawbul/pyEnsemblRest/actions/workflows/push_tag.yaml/badge.svg)](https://github.com/gawbul/pyEnsemblRest/actions/workflows/push_tag.yaml)
+
 [![Coveralls Code Coverage](https://coveralls.io/repos/github/gawbul/pyEnsemblRest/badge.svg?branch=main)](https://coveralls.io/github/gawbul/pyEnsemblRest?branch=main)
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/gawbul/pyEnsemblRest/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/gawbul/pyEnsemblRest/?branch=main)
