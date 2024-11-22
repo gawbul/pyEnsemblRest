@@ -39,6 +39,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+lcov.info
 
 # Translations
 *.mo
@@ -63,3 +64,12 @@ target/
 .spyderproject
 cover/
 .spyproject/
+
+# Ruff
+.ruff_cache/
+
+# Mypy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/

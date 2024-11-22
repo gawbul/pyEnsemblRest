@@ -1,4 +1,0 @@
-
-* Simplify EnsemblRest.__init__()
-* Simplify somethingBad tests
-* simplify parseResponse
