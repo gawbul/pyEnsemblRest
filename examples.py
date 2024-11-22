@@ -8,6 +8,7 @@ ensRest = EnsemblRest()
 # Check the user agent
 print(ensRest.get_user_agent())
 
+
 # Archive
 print(ensRest.getArchiveById(id="ENSG00000157764"))
 print(ensRest.getArchiveByMultipleIds(id=["ENSG00000157764", "ENSG00000248378"]))
