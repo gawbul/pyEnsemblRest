@@ -51,3 +51,4 @@ repos:
         language: system
         types: [file]
         pass_filenames: false
+        files: ^pyensemblrest\/.+.py$
