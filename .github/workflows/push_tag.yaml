@@ -5,22 +5,22 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
+permissions:
+  contents: read
+
 jobs:
-  publish:
-    name: Publish to PyPI
+  release:
+    name: Release to GitHub
     runs-on: ubuntu-latest
     environment: dev
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11', '3.12']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ">=3.10 <3.13"
 
       - name: Set Poetry Version
         id: set-poetry-version
@@ -52,6 +52,33 @@ jobs:
 
       - name: Build project
         run: poetry build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*
+  publish:
+    needs:
+      - release
+    permissions:
+      id-token: write
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
 
       - name: Publish project
         run: poetry publish
