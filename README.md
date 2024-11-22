@@ -14,7 +14,7 @@
 
 [![PyPi Package](https://img.shields.io/pypi/v/pyensemblrest.svg?maxAge=2592000)](https://pypi.python.org/pypi/pyensemblrest)
 
-[![GitHub Downloads](https://img.shields.io/github/downloads/gawbul/pyEnsemblRest/total.svg?maxAge=2592000)](https://github.com/gawbul/pyEnsemblRest/releases)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/gawbul/pyEnsemblRest/total)](https://github.com/gawbul/pyEnsemblRest/releases)
 
 [![PyPi Downloads](https://img.shields.io/pypi/dd/pyensemblrest.svg?maxAge=2592000)](https://img.shields.io/pypi/dd/pyensemblrest.svg?maxAge=2592000)
 
