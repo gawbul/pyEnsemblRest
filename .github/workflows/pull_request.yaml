@@ -2,8 +2,8 @@ name: pull_request
 
 on:
   pull_request:
-    paths-ignore:
-      - .github/**
+    paths:
+      - 'pyensemblrest/**.py'
 
 jobs:
   test:
