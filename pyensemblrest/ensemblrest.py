@@ -506,3 +506,7 @@ class EnsemblRest(object):
 
         # call response and return content
         return self.parseResponse(resp, self.last_headers["Content-Type"])
+
+    def get_user_agent(self) -> str:
+        """Return the pyEnsemblRest user agent"""
+        return ensembl_user_agent

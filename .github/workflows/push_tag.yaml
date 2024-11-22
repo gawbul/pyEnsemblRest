@@ -1,19 +1,18 @@
-name: pull_request
+name: push_tag
 
 on:
-  pull_request:
-    paths-ignore:
-      - .github/**
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  test:
-    name: Run Tests
+  publish:
+    name: Publish to PyPI
     runs-on: ubuntu-latest
     environment: dev
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,11 +50,10 @@ jobs:
       - name: Install project
         run: poetry install --no-interaction
 
-      - name: Run unit tests with pytest and code coverage with pytest-cov
-        run: poetry run pytest -v --cov=pyensemblrest --cov-report lcov:./tests/lcov.info
+      - name: Build project
+        run: poetry build
 
-      - name: Upload Coverage Results
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./tests/lcov.info
+      - name: Publish project
+        run: poetry publish
+        env:
+          POETRY_PYPI_TOKEN_PYENSEMBLREST: ${{ secrets.POETRY_PYPI_TOKEN_PYENSEMBLREST }}

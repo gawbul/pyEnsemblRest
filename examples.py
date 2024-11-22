@@ -5,6 +5,9 @@ from pyensemblrest import EnsemblRest
 # Setup a new EnsemblRest object
 ensRest = EnsemblRest()
 
+# Check the user agent
+print(ensRest.get_user_agent())
+
 # Archive
 print(ensRest.getArchiveById(id="ENSG00000157764"))
 print(ensRest.getArchiveByMultipleIds(id=["ENSG00000157764", "ENSG00000248378"]))
@@ -68,7 +71,7 @@ print(
         species="human", population_name="1000GENOMES:phase_3:ASW"
     )
 )
-print(ensRest.getInfoVariationPopulations(species="homo_sapiens"))
+print(ensRest.getInfoVariationPopulations(species="homo_sapiens", filter="LD"))
 time.sleep(15)
 
 # Linkage Disequilibrium
@@ -229,22 +232,22 @@ print(
     ensRest.getGA4GHBeaconQuery(
         alternateBases="C",
         assemblyId="GRCh38",
-        end="__VAR(GA4GH_beacon_end)__",
+        end="23125503",
         referenceBases="G",
         referenceName="9",
         start="22125503",
-        variantType="__VAR(GA4GH_beacon_variantType)__",
+        variantType="DUP",
     )
 )
 print(
     ensRest.postGA4GHBeaconQuery(
         alternateBases="C",
         assemblyId="GRCh38",
-        end="__VAR(GA4GH_beacon_end)__",
+        end="23125503",
         referenceBases="G",
         referenceName="9",
         start="22125503",
-        variantType="__VAR(GA4GH_beacon_variantType)__",
+        variantType="DUP",
     )
 )
 print(ensRest.getGA4GHFeaturesById(id="ENST00000408937.7"))

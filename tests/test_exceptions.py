@@ -1,6 +1,8 @@
 import time
 import unittest
 
+import pytest
+
 import pyensemblrest
 from pyensemblrest.ensemblrest import FakeResponse
 from pyensemblrest.exceptions import (
@@ -10,7 +12,6 @@ from pyensemblrest.exceptions import (
 )
 
 
-# TODO: test maximum POST input size
 class EnsemblRest(unittest.TestCase):
     """A class to test EnsemblRest methods"""
 
@@ -22,6 +23,7 @@ class EnsemblRest(unittest.TestCase):
         """Sleep a while before doing next request"""
         time.sleep(0.2)
 
+    @pytest.mark.live
     def test_BadRequest(self) -> None:
         """Do an ensembl bad request"""
 
@@ -32,6 +34,7 @@ class EnsemblRest(unittest.TestCase):
             id="meow",
         )
 
+    @pytest.mark.live
     def test_BadUrl(self) -> None:
         """Do a Not found request"""
 
@@ -67,6 +70,7 @@ class EnsemblRest(unittest.TestCase):
             "url"
         ] = old_uri
 
+    @pytest.mark.live
     def test_getMsg(self) -> None:
         """Do a bad request and get message"""
 
@@ -78,6 +82,7 @@ class EnsemblRest(unittest.TestCase):
 
         self.assertRegex(msg, "EnsEMBL REST API returned a 400 (Bad Request)*")
 
+    @pytest.mark.live
     def test_rateLimit(self) -> None:
         """Simulating a rate limiting environment"""
 
@@ -119,6 +124,7 @@ class EnsemblRest(unittest.TestCase):
 
         self.assertRegex(msg, "EnsEMBL REST API returned a 429 (Too Many Requests)*")
 
+    @pytest.mark.live
     def test_RestUnavailable(self) -> None:
         """Querying a not available REST server"""
 
@@ -135,6 +141,7 @@ class EnsemblRest(unittest.TestCase):
             id=["ENSG00000157764", "ENSG00000248378"],
         )
 
+    @pytest.mark.live
     def test_SomethingBad(self) -> None:
         """raise exception when n of attempts exceeds"""
 
@@ -162,6 +169,7 @@ class EnsemblRest(unittest.TestCase):
             fakeResponse,
         )
 
+    @pytest.mark.live
     def test_RequestTimeout(self) -> None:
         """Deal with connections timeout"""
 
@@ -181,6 +189,79 @@ class EnsemblRest(unittest.TestCase):
             referenceName="X",
             start=197859,
             pageSize=1,
+        )
+
+    @pytest.mark.live
+    def test_MaximumPOSTSize(self) -> None:
+        """Deal with maximum post size errors"""
+
+        # verify exception
+        self.assertRaisesRegex(
+            EnsemblRestError,
+            "POST message too large.*",
+            self.EnsEMBL.getSequenceByMultipleIds,
+            ids=[
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+                "ENSG00000157764",
+                "ENSG00000248378",
+            ],
         )
 
 

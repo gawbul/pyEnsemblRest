@@ -8,7 +8,7 @@ unit-test:
 	poetry run pytest -v -m "not live"
 
 ci-test:
-	poetry run pytest -v --cov=pyensemblrest --cov-report lcov:./tests/lcov.info
+	poetry run pytest -v --cov=pyensemblrest --cov-report lcov:./tests/lcov.info tests/
 
 coverage:
 	poetry run coveralls

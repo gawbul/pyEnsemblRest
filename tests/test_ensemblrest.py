@@ -36,7 +36,7 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # Wait some time before next request
-WAIT = 0.5
+WAIT = 1
 
 # Sometimes curl fails
 MAX_RETRIES = 5
@@ -302,6 +302,7 @@ class EnsemblRestHelper(EnsemblRest):
 class EnsemblRestBase(EnsemblRest):
     """A class to deal with ensemblrest base methods"""
 
+    @pytest.mark.live
     def test_setHeaders(self) -> None:
         """Testing EnsemblRest with no headers provided"""
 
@@ -309,6 +310,7 @@ class EnsemblRestBase(EnsemblRest):
         self.EnsEMBL = pyensemblrest.EnsemblRest(headers={})
         self.assertEqual(self.EnsEMBL.session.headers.get("User-Agent"), user_agent)
 
+    @pytest.mark.live
     def test_mandatoryParameters(self) -> None:
         """Testing EnsemblRest with no mandatory parameters"""
 
@@ -318,7 +320,7 @@ class EnsemblRestBase(EnsemblRest):
             self.EnsEMBL.getArchiveById,
         )
 
-    # TODO: Fix this???
+    @pytest.mark.live
     def test_wait4request(self) -> None:
         """Simulating max request per second"""
 
@@ -327,6 +329,10 @@ class EnsemblRestBase(EnsemblRest):
         self.EnsEMBL.last_req += 2
         self.EnsEMBL.getArchiveById(id="ENSG00000157764")
 
+        # check request count has reset to zero
+        self.assertEqual(self.EnsEMBL.req_count, 0)
+
+    @pytest.mark.live
     def test_methodNotImplemented(self) -> None:
         """Testing a not implemented method"""
 
@@ -374,6 +380,7 @@ class EnsemblRestBase(EnsemblRest):
         self.assertDictEqual(reference, test)
         self.assertGreaterEqual(self.EnsEMBL.last_attempt, 1)
 
+    @pytest.mark.live
     def test_SomethingBad(self) -> None:
         """Deal with the {"error":"something bad has happened"} message"""
 
@@ -389,12 +396,13 @@ class EnsemblRestBase(EnsemblRest):
         # call generic function
         self.__something_bad(curl_cmd, last_response)
 
+    @pytest.mark.live
     def test_SomethingBadPOST(self) -> None:
         """Deal with the {"error":"something bad has happened"} message using a POST method"""
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/lookup/id' -H 'Content-type:application/json' """
-            """-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378" ] }'"""
+            """-H 'Accept:application/json' -X POST -d '{ "ids" : ["ENSG00000157764", "ENSG00000248378"] }'"""
         )
 
         # execute EnsemblRest function
@@ -406,6 +414,7 @@ class EnsemblRestBase(EnsemblRest):
         # call generic function
         self.__something_bad(curl_cmd, last_response)
 
+    @pytest.mark.live
     def test_LDFeatureContainerAdaptor(self) -> None:
         """Deal with the {"error":"Something went wrong while fetching from LDFeatureContainerAdaptor"} message"""
 
@@ -2171,17 +2180,35 @@ class EnsemblRestVariation(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.live
     def test_getVariationByPMCID(self) -> None:
         """Testing get variation by pmcid GET method"""
 
-        return
+        curl_cmd = """curl 'https://rest.ensembl.org/variation/human/pmcid/PMC5002951?' -H 'Content-type:application/json'"""
 
-    @pytest.mark.skip(reason="TODO")
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariationByPMCID(pmcid="PMC5002951", species="human")
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
+
+    @pytest.mark.live
     def test_getVariationByPMID(self) -> None:
         """Testing get variation by pmid GET method"""
 
-        return
+        curl_cmd = """curl 'https://rest.ensembl.org/variation/human/pmid/26318936?' -H 'Content-type:application/json'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getVariationByPMID(pmid="26318936", species="human")
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     @pytest.mark.live
     def test_getVariationByMultipleIds(self) -> None:
@@ -2228,35 +2255,111 @@ class EnsemblRestVariation(EnsemblRest):
 class EnsemblRestVariationGA4GH(EnsemblRest):
     """A class to deal with ensemblrest variation GA4GH methods"""
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.live
     def test_getGA4GHBeacon(self) -> None:
         """Testing get GA4GH beacon GET method"""
 
-        return
+        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/beacon?' -H 'Content-type:application/json' """
 
-    @pytest.mark.skip(reason="TODO")
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHBeacon()
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
+
+    @pytest.mark.live
     def test_getGA4GHBeaconQuery(self) -> None:
         """Testing get GA4GH beacon query GET method"""
 
-        return
+        curl_cmd = (
+            """curl 'http://rest.ensembl.org/ga4gh/beacon/query?referenceBases=G;"""
+            """alternateBases=C;referenceName=9;assemblyId=GRCh38;start=22125503' """
+            """-H 'Content-type:application/json' """
+        )
 
-    @pytest.mark.skip(reason="TODO")
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHBeaconQuery(
+            referenceBases="G",
+            alternateBases="C",
+            referenceName=9,
+            assemblyId="GRCh38",
+            start=22125503,
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
+
+    @pytest.mark.live
     def test_postGA4GHBeaconQuery(self) -> None:
         """Testing get GA4GH beacon query POST method"""
 
-        return
+        curl_cmd = (
+            """curl -X POST 'http://rest.ensembl.org/ga4gh/beacon/query' """
+            """-H 'Content-type:application/json' -H 'Accept:application/json' """
+            """-d '{ "referenceName": "9", "start": 22125503, "referenceBases": "G", """
+            """"alternateBases": "C", "assemblyId": "GRCh38"}'"""
+        )
 
-    @pytest.mark.skip(reason="TODO")
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.postGA4GHBeaconQuery(
+            referenceBases="G",
+            alternateBases="C",
+            referenceName=9,
+            assemblyId="GRCh38",
+            start=22125503,
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
+
+    @pytest.mark.live
     def test_getGA4GHFeatures(self) -> None:
         """Testing get GA4GH features GET method"""
 
-        return
+        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/features/ENST00000408937.7?' -H 'Content-type:application/json' """
 
-    @pytest.mark.skip(reason="TODO")
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHFeaturesById(id="ENST00000408937.7")
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
+
+    @pytest.mark.live
     def test_searchGA4GHFeatures(self) -> None:
         """Testing GA4GH features search POST method"""
 
-        return
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/ga4gh/features/search' -H 'Content-type:application/json' """
+            """-H 'Accept:application/json' -X POST -d '{ "start":39657458, "end": 39753127, """
+            """"referenceName":"20", "featureSetId": "", "parentId": "ENSG00000176515.1" }'"""
+        )
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHFeatures(
+            referenceName="20",
+            start=39657458,
+            end=39753127,
+            featureSetId="",
+            parentId="ENSG00000176515.1",
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     @pytest.mark.live
     def test_searchGA4GHCallset(self) -> None:
@@ -2327,17 +2430,40 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.live
     def test_searchGA4GHFeatureset(self) -> None:
         """Testing GA4GH featureset search POST method"""
 
-        return
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/ga4gh/featuresets/search' -H 'Content-type:application/json' """
+            """-H 'Accept:application/json' -X POST -d '{ "datasetId": "Ensembl" }'"""
+        )
 
-    @pytest.mark.skip(reason="TODO")
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHFeaturesets(
+            datasetId="Ensembl",
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
+
+    @pytest.mark.live
     def test_getGA4GHFeaturesetById(self) -> None:
         """Testing get GA4GH featureset GET method"""
 
-        return
+        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/featuresets/Ensembl?' -H 'Content-type:application/json' """
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHFeaturesetsById(id="Ensembl")
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     @pytest.mark.live
     def test_getGA4GHVariantsById(self) -> None:
@@ -2354,11 +2480,30 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.live
     def test_searchGA4GHVariantAnnotations(self) -> None:
         """Testing GA4GH variant annotations search POST method"""
 
-        return
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/ga4gh/variantannotations/search' -H 'Content-type:application/json' """
+            """-H 'Accept:application/json' -X POST -d '{ "variantAnnotationSetId": "Ensembl", "referenceName": "22", """
+            """"start": 25000000 , "end": 25194457, "pageSize": 2}'"""
+        )
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHVariantAnnotations(
+            variantAnnotationSetId="Ensembl",
+            referenceName=22,
+            start=25000000,
+            end=25194457,
+            pageSize=2,
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
     @pytest.mark.live
     def test_searchGA4GHVariants(self) -> None:
@@ -2497,17 +2642,42 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         # testing values
         self.assertTrue(compareNested(reference, test))
 
-    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.live
     def test_searchGA4GHVariantAnnotationsets(self) -> None:
         """Testing GA4GH variant annotation sets search POST method"""
 
-        return
+        curl_cmd = (
+            """curl 'https://rest.ensembl.org/ga4gh/variantannotationsets/search' -H 'Content-type:application/json' """
+            """-H 'Accept:application/json' -X POST -d '{ "variantSetId": "Ensembl"}'"""
+        )
 
-    @pytest.mark.skip(reason="TODO")
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.searchGA4GHVariantAnnotationsets(
+            variantSetId="Ensembl",
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
+
+    @pytest.mark.live
     def test_getGA4GHVariantAnnotationsets(self) -> None:
         """Testing get GA4GH variant annotation sets GET method"""
 
-        return
+        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/variantannotationsets/Ensembl' -H 'Content-type:application/json'"""
+
+        # execute the curl cmd an get data as a dictionary
+        reference = jsonFromCurl(curl_cmd)
+
+        # execute EnsemblRest function
+        test = self.EnsEMBL.getGA4GHVariantAnnotationsetsById(
+            id="Ensembl",
+        )
+
+        # testing values
+        self.assertTrue(compareNested(reference, test))
 
 
 if __name__ == "__main__":

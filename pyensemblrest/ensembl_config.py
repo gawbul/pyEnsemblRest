@@ -578,26 +578,24 @@ ensembl_api_table: dict[str, Any] = {
         "url": "/ga4gh/beacon/query?"
         "alternateBases={{alternateBases}};"
         "assemblyId={{assemblyId}};"
-        "end={{end}};"
-        "referenceBases={{referenceBases}}"
-        "referenceName={{referenceName}}"
-        "start={{start}}"
-        "variantType={{variantType}}",
+        "referenceBases={{referenceBases}};"
+        "referenceName={{referenceName}};"
+        "start={{start}}",
         "method": "GET",
         "content_type": "application/json",
     },
     "postGA4GHBeaconQuery": {
         "doc": "Return the Beacon response for allele information",
-        "url": "/ga4gh/beacon/query?",
+        "url": "/ga4gh/beacon/query",
         "method": "POST",
         "content_type": "application/json",
         "post_parameters": [
-            "alternateBases"
-            "assemblyId"
-            "end"
-            "referenceBases"
-            "referenceName"
-            "start"
+            "alternateBases",
+            "assemblyId",
+            "end",
+            "referenceBases",
+            "referenceName",
+            "start",
             "variantType",
         ],
     },
