@@ -2,11 +2,11 @@
 
 `pyEnsemblRest` is a simple Python client for the Ensembl REST API
 
-[![Build Status](https://github.com/gawbul/pyEnsemblRest/actions/workflows/pull_request.yaml/badge.svg)](https://github.com/gawbul/pyEnsemblRest/actions/workflows/pull_request.yaml)
+[![GitHub Build Status](https://github.com/gawbul/pyEnsemblRest/actions/workflows/pull_request.yaml/badge.svg)](https://github.com/gawbul/pyEnsemblRest/actions/workflows/pull_request.yaml)
 
-[![Code Coverage](https://coveralls.io/repos/github/gawbul/pyEnsemblRest/badge.svg?branch=main)](https://coveralls.io/github/gawbul/pyEnsemblRest?branch=main)
+[![Coveralls Code Coverage](https://coveralls.io/repos/github/gawbul/pyEnsemblRest/badge.svg?branch=main)](https://coveralls.io/github/gawbul/pyEnsemblRest?branch=main)
 
-[![Code Quality](https://img.shields.io/scrutinizer/g/gawbul/pyEnsemblRest.svg?maxAge=2592000)](https://img.shields.io/scrutinizer/g/gawbul/pyEnsemblRest.svg?maxAge=2592000)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/gawbul/pyEnsemblRest/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/gawbul/pyEnsemblRest/?branch=main)
 
 [![Gitter Chat](https://img.shields.io/gitter/room/gawbul/pyEnsemblRest.js.svg?maxAge=2592000)](https://gitter.im/gawbul/pyEnsemblRest)
 
