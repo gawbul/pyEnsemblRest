@@ -1935,7 +1935,7 @@ class EnsemblRestHaplotype(EnsemblRest):
     """A class to deal with ensemblrest transcript haplotypes methods"""
 
     @pytest.mark.live
-    def test_getTranscripsHaplotypes(self) -> None:
+    def test_getTranscriptHaplotypes(self) -> None:
         """Testing get transcripts Haplotypes GET method"""
 
         curl_cmd = (
