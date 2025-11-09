@@ -44,8 +44,8 @@ style = "semver"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
-coveralls = "^4.0.1"
-requests = "^2.32.3"
+coveralls = "^4.0.2"
+requests = "^2.32.5"
 mypy = "^1.18.0"
 ruff = "^0.14.0"
 pre-commit = "^4.0.1"
