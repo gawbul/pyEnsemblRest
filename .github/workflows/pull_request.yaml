@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'pyensemblrest/**.py'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.github/workflows/pull_request.yaml'
 
 jobs:
   test:
