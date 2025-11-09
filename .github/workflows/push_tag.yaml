@@ -102,6 +102,9 @@ jobs:
         with:
           name: release-dists
 
+      - name: Output paths
+        run: ls -alh dist/
+
       - name: Publish project
         run: poetry publish
         env:
