@@ -48,8 +48,8 @@ coveralls = "^4.0.2"
 requests = "^2.32.5"
 mypy = "^1.18.0"
 ruff = "^0.14.0"
-pre-commit = "^4.0.1"
-types-requests = "^2.32.0.20241016"
+pre-commit = "^4.4.0"
+types-requests = "^2.32.4.20250913"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^9.0.0"
