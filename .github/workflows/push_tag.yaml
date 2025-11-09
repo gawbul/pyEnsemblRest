@@ -87,47 +87,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-tags: true
-          ref: ${{ github.ref_name}}
-
-      - name: Set up Python
-        id: setup-python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ">=3.10 <3.14"
 
       - name: Set Poetry Version
         id: set-poetry-version
         run: echo "POETRY_VERSION=$(cat .poetry-version)" >> $GITHUB_OUTPUT
 
       - name: Install Poetry
-        id: install-poetry-version
         uses: snok/install-poetry@v1
         with:
           version: ${{ steps.set-poetry-version.outputs.POETRY_VERSION }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          virtualenvs-path: .venv
-          installer-parallel: true
-
-      - name: Add Poetry Dynamic Versioning Plugin
-        run: |
-          poetry self add poetry-dynamic-versioning[plugin]
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Install project
-        run: poetry install --no-interaction
 
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
