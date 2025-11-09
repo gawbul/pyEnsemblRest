@@ -101,7 +101,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: release-dists
-          path: dist
 
       - name: Publish project
         run: poetry publish
