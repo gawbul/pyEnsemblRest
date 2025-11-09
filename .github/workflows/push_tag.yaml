@@ -109,4 +109,4 @@ jobs:
       - name: Publish project
         run: poetry publish
         env:
-          POETRY_PYPI_TOKEN_PYENSEMBLREST: ${{ secrets.POETRY_PYPI_TOKEN_PYENSEMBLREST }}
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
