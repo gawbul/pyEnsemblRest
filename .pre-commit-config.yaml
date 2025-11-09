@@ -51,4 +51,4 @@ repos:
         language: system
         types: [file]
         pass_filenames: false
-        files: ^pyensemblrest\/.+.py$
+        files: ^(pyensemblrest\/.+\.py|tests\/.+\.py|pyproject\.toml|poetry\.lock)$

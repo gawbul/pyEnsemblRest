@@ -54,11 +54,14 @@ types-requests = "^2.32.4.20250913"
 [tool.poetry.group.test.dependencies]
 pytest = "^9.0.0"
 pytest-cov = "^7.0.0"
+pytest-rerunfailures = "^16.1"
 
 [tool.pytest.ini_options]
 markers = [
     "live: tests that run live in CI (deselect with '-m \"not live\"')"
 ]
+# Automatically retry flaky live tests to handle API inconsistencies
+addopts = "--reruns 2 --reruns-delay 2 --only-rerun AssertionError --only-rerun ConnectionError"
 
 [tool.mypy]
 strict = true
