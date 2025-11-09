@@ -233,6 +233,46 @@ def compareNested(obj1: Any, obj2: Any) -> bool:
         return obj1 == obj2
 
 
+def normalize_genomes_response(
+    data: dict[str, Any] | list[dict[str, Any]],
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """
+    Normalize Ensembl genomes API response to handle inconsistent formats.
+
+    The Ensembl API sometimes returns nested structures with 'assembly' and
+    'organism' objects, and sometimes returns flat structures. This function
+    flattens nested structures for consistent comparison.
+
+    Args:
+        data: Response data from Ensembl genomes endpoints (single dict or list of dicts)
+
+    Returns:
+        Normalized (flattened) response data
+    """
+
+    def normalize_single(item: dict[str, Any]) -> dict[str, Any]:
+        """Normalize a single genome item."""
+        normalized = item.copy()
+
+        # Flatten 'assembly' object if present
+        if "assembly" in normalized and isinstance(normalized["assembly"], dict):
+            assembly_data = normalized.pop("assembly")
+            normalized.update(assembly_data)
+
+        # Flatten 'organism' object if present
+        if "organism" in normalized and isinstance(normalized["organism"], dict):
+            organism_data = normalized.pop("organism")
+            normalized.update(organism_data)
+
+        return normalized
+
+    # Handle both single dict and list of dicts
+    if isinstance(data, list):
+        return [normalize_single(item) for item in data]
+    else:
+        return normalize_single(data)
+
+
 class EnsemblRest(unittest.TestCase):
     """A class to test EnsemblRest methods"""
 
@@ -1000,8 +1040,12 @@ class EnsemblRestInfo(EnsemblRest):
         # execute EnsemblRest function
         test = self.EnsEMBL.getInfoGenomesByName(name="homo_sapiens")
 
+        # normalize both responses to handle inconsistent API formats
+        reference_normalized = normalize_genomes_response(reference)
+        test_normalized = normalize_genomes_response(test)
+
         # testing values
-        self.assertTrue(compareNested(reference, test))
+        self.assertTrue(compareNested(reference_normalized, test_normalized))
 
     @pytest.mark.live
     def test_getInfoGenomesByAccession(self) -> None:
@@ -1018,8 +1062,12 @@ class EnsemblRestInfo(EnsemblRest):
         # execute EnsemblRest function
         test = self.EnsEMBL.getInfoGenomesByAccession(accession="U00096")
 
+        # normalize both responses to handle inconsistent API formats
+        reference_normalized = normalize_genomes_response(reference)
+        test_normalized = normalize_genomes_response(test)
+
         # testing values
-        self.assertTrue(compareNested(reference, test))
+        self.assertTrue(compareNested(reference_normalized, test_normalized))
 
     @pytest.mark.live
     def test_getInfoGenomesByAssembly(self) -> None:
@@ -1036,8 +1084,12 @@ class EnsemblRestInfo(EnsemblRest):
         # execute EnsemblRest function
         test = self.EnsEMBL.getInfoGenomesByAssembly(assembly_id="GCA_902167145.1")
 
+        # normalize both responses to handle inconsistent API formats
+        reference_normalized = normalize_genomes_response(reference)
+        test_normalized = normalize_genomes_response(test)
+
         # testing values
-        self.assertTrue(compareNested(reference, test))
+        self.assertTrue(compareNested(reference_normalized, test_normalized))
 
     @pytest.mark.live
     def test_getInfoGenomesByDivision(self) -> None:
@@ -1054,8 +1106,12 @@ class EnsemblRestInfo(EnsemblRest):
         # execute EnsemblRest function
         test = self.EnsEMBL.getInfoGenomesByDivision(division="EnsemblPlants")
 
+        # normalize both responses to handle inconsistent API formats
+        reference_normalized = normalize_genomes_response(reference)
+        test_normalized = normalize_genomes_response(test)
+
         # testing values
-        self.assertTrue(compareNested(reference, test))
+        self.assertTrue(compareNested(reference_normalized, test_normalized))
 
     @pytest.mark.live
     def test_getInfoGenomesByTaxonomy(self) -> None:
@@ -1072,8 +1128,12 @@ class EnsemblRestInfo(EnsemblRest):
         # execute EnsemblRest function
         test = self.EnsEMBL.getInfoGenomesByTaxonomy(taxon_name="Arabidopsis")
 
+        # normalize both responses to handle inconsistent API formats
+        reference_normalized = normalize_genomes_response(reference)
+        test_normalized = normalize_genomes_response(test)
+
         # testing values
-        self.assertTrue(compareNested(reference, test))
+        self.assertTrue(compareNested(reference_normalized, test_normalized))
 
     @pytest.mark.live
     def test_getInfoPing(self) -> None:
