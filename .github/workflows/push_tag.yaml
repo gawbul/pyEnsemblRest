@@ -97,14 +97,14 @@ jobs:
         with:
           version: ${{ steps.set-poetry-version.outputs.POETRY_VERSION }}
 
+      - name: Add Poetry Dynamic Versioning Plugin
+        run: poetry self add poetry-dynamic-versioning[plugin]
+
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
         with:
           name: release-dists
           path: dist
-
-      - name: Output paths
-        run: ls -alh dist/
 
       - name: Publish project
         run: poetry publish
