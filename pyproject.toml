@@ -32,6 +32,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 packages = [
   { include = "pyensemblrest" }
@@ -43,7 +44,7 @@ vcs = "git"
 style = "semver"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.14"
+python = ">=3.10,<3.15"
 coveralls = "^4.0.2"
 requests = "^2.32.5"
 mypy = "^1.18.0"
