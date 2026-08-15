@@ -48,9 +48,9 @@ TIMEOUT = 60
 def launch(cmd: str) -> str:
     """Calling a cmd with subprocess"""
 
-    # setting curl timeouts
-    pattern = re.compile("curl")
-    repl = "curl --connect-timeout %s --max-time %s" % (TIMEOUT, TIMEOUT * 2)
+    # setting curl timeouts and silent flag
+    pattern = re.compile(r"^curl\b")
+    repl = f"curl -s -S --connect-timeout {TIMEOUT} --max-time {TIMEOUT}"
 
     # Setting curl options
     cmd = re.sub(pattern, repl, cmd)
@@ -65,9 +65,6 @@ def launch(cmd: str) -> str:
 
     if len(stderr) > 0:
         logger.debug(stderr)
-
-    # debug
-    # logger.debug("Got: %s" % (stdout))
 
     return stdout
 
@@ -91,7 +88,7 @@ def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
 
         except ValueError as e:
             logger.warning("Curl command failed: %s" % e)
-            time.sleep(WAIT * 10)
+            time.sleep(WAIT * 2)
 
             # next request
             continue
@@ -99,7 +96,7 @@ def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
         if isinstance(data, dict):
             if "error" in data:
                 logger.warning("Curl command failed: %s" % (data["error"]))
-                time.sleep(WAIT * 10)
+                time.sleep(WAIT * 2)
 
                 # next request
                 continue
