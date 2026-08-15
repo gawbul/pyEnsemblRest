@@ -39,10 +39,10 @@ logger.addHandler(ch)
 WAIT = 1
 
 # Sometimes curl fails
-MAX_RETRIES = 5
+MAX_RETRIES = 2
 
 # curl timeouts
-TIMEOUT = 60
+TIMEOUT = 20
 
 
 def launch(cmd: str) -> str:
@@ -275,7 +275,7 @@ class EnsemblRest(unittest.TestCase):
 
     def setUp(self) -> None:
         """Create a EnsemblRest object"""
-        self.EnsEMBL = pyensemblrest.EnsemblRest()
+        self.EnsEMBL = pyensemblrest.EnsemblRest(timeout=20, max_attempts=2)
 
     def tearDown(self) -> None:
         """Sleep a while before doing next request"""
