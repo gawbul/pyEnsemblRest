@@ -65,7 +65,7 @@ markers = [
     "live: tests that run live in CI (deselect with '-m \"not live\"')"
 ]
 # Automatically retry flaky live tests to handle API inconsistencies
-addopts = "--reruns 3 --reruns-delay 3"
+addopts = "--reruns 5 --reruns-delay 5"
 
 [tool.mypy]
 strict = true

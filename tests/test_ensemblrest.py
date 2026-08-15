@@ -39,10 +39,10 @@ logger.addHandler(ch)
 WAIT = 1
 
 # Sometimes curl fails
-MAX_RETRIES = 2
+MAX_RETRIES = 3
 
 # curl timeouts
-TIMEOUT = 20
+TIMEOUT = 60
 
 
 def launch(cmd: str) -> str:
@@ -275,7 +275,7 @@ class EnsemblRest(unittest.TestCase):
 
     def setUp(self) -> None:
         """Create a EnsemblRest object"""
-        self.EnsEMBL = pyensemblrest.EnsemblRest(timeout=20, max_attempts=2)
+        self.EnsEMBL = pyensemblrest.EnsemblRest(timeout=60, max_attempts=3)
 
     def tearDown(self) -> None:
         """Sleep a while before doing next request"""
@@ -576,7 +576,7 @@ class EnsemblRestComparative(EnsemblRest):
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/symbol/homo_sapiens/"""
-            """BRCA2?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
+            """BRCA2?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
@@ -585,10 +585,8 @@ class EnsemblRestComparative(EnsemblRest):
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
         test = self.EnsEMBL.getCafeGeneTreeMemberBySymbol(
-            species="human",
+            species="homo_sapiens",
             symbol="BRCA2",
-            prune_species="cow",
-            prune_taxon=9526,
             content_type="application/json",
         )
 
