@@ -5,10 +5,18 @@ on:
     - cron: '0 3 * * *' # Every night at 03:00 UTC
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   api-drift-check:
     name: Ensembl Live API Drift Check
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

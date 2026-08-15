@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -12,6 +16,7 @@ jobs:
   release:
     name: Release to GitHub
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: dev
     permissions:
       contents: write
@@ -82,12 +87,13 @@ jobs:
   publish:
     needs:
       - release
-    permissions:
-      id-token: write
-    name: Publish to PyPI
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: dev
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
