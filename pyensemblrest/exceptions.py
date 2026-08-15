@@ -8,7 +8,7 @@ from .ensembl_config import ensembl_http_status_codes
 class EnsemblRestError(Exception):
     """
     Generic error class, catch-all for most EnsemblRest issues.
-    Special cases are handled by EnsemblRestRateLimitError and EnsemblRestServiceUnavailable.
+    Special cases are handled by subclasses like EnsemblRestRateLimitError and EnsemblRestServiceUnavailable.
     """
 
     def __init__(
@@ -18,18 +18,19 @@ class EnsemblRestError(Exception):
         rate_reset: int | None = None,
         rate_limit: int | None = None,
         rate_remaining: int | None = None,
-        retry_after: float | None = None,
+        retry_after: float | int | None = None,
     ) -> None:
         self.error_code = error_code
+        self.rate_reset = rate_reset
+        self.rate_limit = rate_limit
+        self.rate_remaining = rate_remaining
+        self.retry_after = float(retry_after) if retry_after is not None else None
 
         if error_code is not None and error_code in ensembl_http_status_codes:
-            msg = "EnsEMBL REST API returned a %s (%s): %s" % (
-                error_code,
-                ensembl_http_status_codes[error_code][0],
-                msg,
-            )
+            status_name = ensembl_http_status_codes[error_code][0]
+            msg = f"EnsEMBL REST API returned a {error_code} ({status_name}): {msg}"
 
-        super(EnsemblRestError, self).__init__(msg)
+        super().__init__(msg)
 
     @property
     def msg(self) -> Any:
@@ -49,17 +50,48 @@ class EnsemblRestRateLimitError(EnsemblRestError):
         rate_reset: int | None = None,
         rate_limit: int | None = None,
         rate_remaining: int | None = None,
-        retry_after: float | None = None,
+        retry_after: float | int | None = None,
     ) -> None:
-        if isinstance(retry_after, float):
-            msg = "%s (Rate limit hit:  Retry after %d seconds)" % (msg, retry_after)
+        if isinstance(retry_after, (int, float)):
+            msg = f"{msg} (Rate limit hit:  Retry after {int(retry_after)} seconds)"
 
-        EnsemblRestError.__init__(self, msg, error_code=error_code)
+        super().__init__(
+            msg,
+            error_code=error_code,
+            rate_reset=rate_reset,
+            rate_limit=rate_limit,
+            rate_remaining=rate_remaining,
+            retry_after=retry_after,
+        )
 
 
 class EnsemblRestServiceUnavailable(EnsemblRestError):
     """
-    Raised when the service is down.
+    Raised when the service is down or unreachable.
+    """
+
+    pass
+
+
+class EnsemblRestTimeoutError(EnsemblRestError):
+    """
+    Raised when a request times out after all retry attempts.
+    """
+
+    pass
+
+
+class EnsemblRestNotFoundError(EnsemblRestError):
+    """
+    Raised when a resource or URL is not found (HTTP 404).
+    """
+
+    pass
+
+
+class EnsemblRestBadRequestError(EnsemblRestError):
+    """
+    Raised when a bad request is submitted (HTTP 400).
     """
 
     pass
