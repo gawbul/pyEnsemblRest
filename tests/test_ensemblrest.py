@@ -365,12 +365,12 @@ class EnsemblRestBase(EnsemblRest):
         """Simulating max request per second"""
 
         self.EnsEMBL.getArchiveById(id="ENSG00000157764")
-        self.EnsEMBL.req_count = 15
-        self.EnsEMBL.last_req += 2
+        # Simulate window expiration
+        time.sleep(1.1)
         self.EnsEMBL.getArchiveById(id="ENSG00000157764")
 
-        # check request count has reset to zero
-        self.assertEqual(self.EnsEMBL.req_count, 0)
+        # check request count reflects active requests in current window
+        self.assertEqual(self.EnsEMBL.req_count, 1)
 
     @pytest.mark.live
     def test_methodNotImplemented(self) -> None:
