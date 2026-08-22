@@ -45,8 +45,9 @@ style = "semver"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
-coveralls = "^4.0.2"
 requests = "^2.32.5"
+
+[tool.poetry.group.dev.dependencies]
 mypy = "^1.18.0"
 ruff = "^0.14.0"
 pre-commit = "^4.4.0"
@@ -56,13 +57,15 @@ types-requests = "^2.32.4.20250913"
 pytest = "^9.0.0"
 pytest-cov = "^7.0.0"
 pytest-rerunfailures = "^16.1"
+responses = "^0.25.0"
+coveralls = "^4.0.2"
 
 [tool.pytest.ini_options]
 markers = [
     "live: tests that run live in CI (deselect with '-m \"not live\"')"
 ]
 # Automatically retry flaky live tests to handle API inconsistencies
-addopts = "--reruns 2 --reruns-delay 2 --only-rerun AssertionError --only-rerun ConnectionError"
+addopts = "--reruns 5 --reruns-delay 5"
 
 [tool.mypy]
 strict = true

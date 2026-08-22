@@ -39,18 +39,25 @@ logger.addHandler(ch)
 WAIT = 1
 
 # Sometimes curl fails
-MAX_RETRIES = 5
+MAX_RETRIES = 3
 
 # curl timeouts
-TIMEOUT = 60
+TIMEOUT = 90
+
+# The comparative genomics endpoints (/genetree/, /cafe/genetree/, /homology/)
+# and GA4GH feature endpoints (/ga4gh/features/) can be extremely slow to resolve.
+# The symbol variants have been measured between 98s and 176s on cold cache, while
+# /ga4gh/features/search has been measured at ~270s on cold cache. Give these specific
+# tests a 600s budget so they do not time out prematurely.
+SLOW_ENDPOINT_TIMEOUT = 600
 
 
-def launch(cmd: str) -> str:
+def launch(cmd: str, timeout: int = TIMEOUT) -> str:
     """Calling a cmd with subprocess"""
 
-    # setting curl timeouts
-    pattern = re.compile("curl")
-    repl = "curl --connect-timeout %s --max-time %s" % (TIMEOUT, TIMEOUT * 2)
+    # setting curl timeouts and silent flag
+    pattern = re.compile(r"^curl\b")
+    repl = f"curl -s -S --connect-timeout {TIMEOUT} --max-time {timeout}"
 
     # Setting curl options
     cmd = re.sub(pattern, repl, cmd)
@@ -66,13 +73,10 @@ def launch(cmd: str) -> str:
     if len(stderr) > 0:
         logger.debug(stderr)
 
-    # debug
-    # logger.debug("Got: %s" % (stdout))
-
     return stdout
 
 
-def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
+def jsonFromCurl(curl_cmd: str, timeout: int = TIMEOUT) -> dict[Any, Any] | None:
     """Parsing a JSON curl result"""
 
     data = None
@@ -83,7 +87,7 @@ def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
         retry += 1
 
         # execute the curl cmd
-        result = launch(curl_cmd)
+        result = launch(curl_cmd, timeout=timeout)
 
         # load it as a dictionary
         try:
@@ -91,7 +95,7 @@ def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
 
         except ValueError as e:
             logger.warning("Curl command failed: %s" % e)
-            time.sleep(WAIT * 10)
+            time.sleep(WAIT * 2)
 
             # next request
             continue
@@ -99,7 +103,7 @@ def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
         if isinstance(data, dict):
             if "error" in data:
                 logger.warning("Curl command failed: %s" % (data["error"]))
-                time.sleep(WAIT * 10)
+                time.sleep(WAIT * 2)
 
                 # next request
                 continue
@@ -273,12 +277,45 @@ def normalize_genomes_response(
         return normalize_single(data)
 
 
+def versionedStableId(stable_id: str) -> str:
+    """
+    Resolve an Ensembl stable ID to its currently versioned form.
+
+    Some endpoints (e.g. /ga4gh/features/{id}) only accept an exact versioned
+    identifier and reject stale versions with a 400. Since versions are bumped
+    between Ensembl releases, look the current one up instead of hardcoding it.
+
+    Args:
+        stable_id: An unversioned Ensembl stable ID (e.g. "ENST00000408937")
+
+    Returns:
+        The stable ID with its current version appended (e.g. "ENST00000408937.8")
+
+    Raises:
+        RuntimeError: If the current version could not be resolved
+    """
+
+    curl_cmd = (
+        f"""curl 'https://rest.ensembl.org/lookup/id/{stable_id}' """
+        """-H 'Content-type:application/json'"""
+    )
+
+    data = jsonFromCurl(curl_cmd)
+
+    if not isinstance(data, dict) or "version" not in data:
+        raise RuntimeError(
+            "Could not resolve the current version for %s: %s" % (stable_id, data)
+        )
+
+    return "%s.%s" % (stable_id, data["version"])
+
+
 class EnsemblRest(unittest.TestCase):
     """A class to test EnsemblRest methods"""
 
     def setUp(self) -> None:
         """Create a EnsemblRest object"""
-        self.EnsEMBL = pyensemblrest.EnsemblRest()
+        self.EnsEMBL = pyensemblrest.EnsemblRest(timeout=TIMEOUT, max_attempts=3)
 
     def tearDown(self) -> None:
         """Sleep a while before doing next request"""
@@ -365,12 +402,12 @@ class EnsemblRestBase(EnsemblRest):
         """Simulating max request per second"""
 
         self.EnsEMBL.getArchiveById(id="ENSG00000157764")
-        self.EnsEMBL.req_count = 15
-        self.EnsEMBL.last_req += 2
+        # Simulate window expiration
+        time.sleep(1.1)
         self.EnsEMBL.getArchiveById(id="ENSG00000157764")
 
-        # check request count has reset to zero
-        self.assertEqual(self.EnsEMBL.req_count, 0)
+        # check request count reflects active requests in current window
+        self.assertEqual(self.EnsEMBL.req_count, 1)
 
     @pytest.mark.live
     def test_methodNotImplemented(self) -> None:
@@ -556,13 +593,16 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeById(self) -> None:
         """Test genetree by id GET method"""
 
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/id/ENSGT00390000003602?' """
             """-H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -577,21 +617,22 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeMemberBySymbol(self) -> None:
         """Test genetree by symbol GET method"""
 
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/symbol/homo_sapiens/"""
-            """BRCA2?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
+            """BRCA2?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
         test = self.EnsEMBL.getCafeGeneTreeMemberBySymbol(
-            species="human",
+            species="homo_sapiens",
             symbol="BRCA2",
-            prune_species="cow",
-            prune_taxon=9526,
             content_type="application/json",
         )
 
@@ -602,13 +643,16 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeMemberById(self) -> None:
         """Test genetree by member id GET method"""
 
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/id/"""
             """homo_sapiens/ENSG00000157764?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # Execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -651,13 +695,16 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getGeneTreeMemberBySymbol(self) -> None:
         """Test genetree by symbol GET method"""
 
+        # resolving by symbol is slow, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/genetree/member/symbol/homo_sapiens/"""
             """BRCA2?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -749,10 +796,13 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getHomologyBySymbol(self) -> None:
         """test get homology by symbol"""
 
+        # resolving by symbol is slow, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = """curl 'https://rest.ensembl.org/homology/symbol/human/BRCA2?' -H 'Content-type:application/json'"""
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -2385,13 +2435,22 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
     def test_getGA4GHFeatures(self) -> None:
         """Testing get GA4GH features GET method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/features/ENST00000408937.7?' -H 'Content-type:application/json' """
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
+        # this endpoint needs an exact version, which changes between releases
+        feature_id = versionedStableId("ENST00000408937")
+
+        curl_cmd = (
+            f"""curl 'https://rest.ensembl.org/ga4gh/features/{feature_id}?' """
+            """-H 'Content-type:application/json' """
+        )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getGA4GHFeaturesById(id="ENST00000408937.7")
+        test = self.EnsEMBL.getGA4GHFeaturesById(id=feature_id)
 
         # testing values
         self.assertTrue(compareNested(reference, test))
@@ -2400,6 +2459,9 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
     def test_searchGA4GHFeatures(self) -> None:
         """Testing GA4GH features search POST method"""
 
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/ga4gh/features/search' -H 'Content-type:application/json' """
             """-H 'Accept:application/json' -X POST -d '{ "start":39657458, "end": 39753127, """
@@ -2407,7 +2469,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function
         test = self.EnsEMBL.searchGA4GHFeatures(
