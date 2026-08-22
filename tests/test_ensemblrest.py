@@ -45,14 +45,11 @@ MAX_RETRIES = 3
 TIMEOUT = 90
 
 # The comparative genomics endpoints (/genetree/, /cafe/genetree/, /homology/)
-# are far more expensive to resolve by symbol than by id, and the cost is the
-# symbol resolution rather than the payload: an untouched BRCA1 homology query
-# returned 929KB by id in 10.5s, while an untouched TP53 one returned 372KB by
-# symbol in 104s. The symbol variants have been measured between 98s and 176s
-# on a cold cache; a repeat of the same URL is served from Ensembl's cache in
-# ~0.15s, so each test pays this once. Their id-based counterparts stay on the
-# global timeout, having measured between 2s and 14s cold.
-SLOW_ENDPOINT_TIMEOUT = 300
+# and GA4GH feature endpoints (/ga4gh/features/) can be extremely slow to resolve.
+# The symbol variants have been measured between 98s and 176s on cold cache, while
+# /ga4gh/features/search has been measured at ~270s on cold cache. Give these specific
+# tests a 600s budget so they do not time out prematurely.
+SLOW_ENDPOINT_TIMEOUT = 600
 
 
 def launch(cmd: str, timeout: int = TIMEOUT) -> str:
@@ -2438,6 +2435,9 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
     def test_getGA4GHFeatures(self) -> None:
         """Testing get GA4GH features GET method"""
 
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         # this endpoint needs an exact version, which changes between releases
         feature_id = versionedStableId("ENST00000408937")
 
@@ -2447,7 +2447,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function
         test = self.EnsEMBL.getGA4GHFeaturesById(id=feature_id)
@@ -2459,6 +2459,9 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
     def test_searchGA4GHFeatures(self) -> None:
         """Testing GA4GH features search POST method"""
 
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/ga4gh/features/search' -H 'Content-type:application/json' """
             """-H 'Accept:application/json' -X POST -d '{ "start":39657458, "end": 39753127, """
@@ -2466,7 +2469,7 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function
         test = self.EnsEMBL.searchGA4GHFeatures(
