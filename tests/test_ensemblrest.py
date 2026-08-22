@@ -42,15 +42,20 @@ WAIT = 1
 MAX_RETRIES = 3
 
 # curl timeouts
-TIMEOUT = 60
+TIMEOUT = 90
+
+# The /cafe/ endpoints return the whole species tree (~400 taxa, ~100KB) and
+# their latency is driven by server load rather than payload size: the same
+# request has been measured anywhere between 9s and 122s. Give them more room.
+CAFE_TIMEOUT = 180
 
 
-def launch(cmd: str) -> str:
+def launch(cmd: str, timeout: int = TIMEOUT) -> str:
     """Calling a cmd with subprocess"""
 
     # setting curl timeouts and silent flag
     pattern = re.compile(r"^curl\b")
-    repl = f"curl -s -S --connect-timeout {TIMEOUT} --max-time {TIMEOUT}"
+    repl = f"curl -s -S --connect-timeout {TIMEOUT} --max-time {timeout}"
 
     # Setting curl options
     cmd = re.sub(pattern, repl, cmd)
@@ -69,7 +74,7 @@ def launch(cmd: str) -> str:
     return stdout
 
 
-def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
+def jsonFromCurl(curl_cmd: str, timeout: int = TIMEOUT) -> dict[Any, Any] | None:
     """Parsing a JSON curl result"""
 
     data = None
@@ -80,7 +85,7 @@ def jsonFromCurl(curl_cmd: str) -> dict[Any, Any] | None:
         retry += 1
 
         # execute the curl cmd
-        result = launch(curl_cmd)
+        result = launch(curl_cmd, timeout=timeout)
 
         # load it as a dictionary
         try:
@@ -308,7 +313,7 @@ class EnsemblRest(unittest.TestCase):
 
     def setUp(self) -> None:
         """Create a EnsemblRest object"""
-        self.EnsEMBL = pyensemblrest.EnsemblRest(timeout=60, max_attempts=3)
+        self.EnsEMBL = pyensemblrest.EnsemblRest(timeout=TIMEOUT, max_attempts=3)
 
     def tearDown(self) -> None:
         """Sleep a while before doing next request"""
@@ -586,13 +591,16 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeById(self) -> None:
         """Test genetree by id GET method"""
 
+        # this endpoint is slow and highly variable, see CAFE_TIMEOUT
+        self.EnsEMBL.timeout = CAFE_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/id/ENSGT00390000003602?' """
             """-H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=CAFE_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -607,13 +615,16 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeMemberBySymbol(self) -> None:
         """Test genetree by symbol GET method"""
 
+        # this endpoint is slow and highly variable, see CAFE_TIMEOUT
+        self.EnsEMBL.timeout = CAFE_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/symbol/homo_sapiens/"""
             """BRCA2?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=CAFE_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -630,13 +641,16 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeMemberById(self) -> None:
         """Test genetree by member id GET method"""
 
+        # this endpoint is slow and highly variable, see CAFE_TIMEOUT
+        self.EnsEMBL.timeout = CAFE_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/id/"""
             """homo_sapiens/ENSG00000157764?' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=CAFE_TIMEOUT)
 
         # Execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
