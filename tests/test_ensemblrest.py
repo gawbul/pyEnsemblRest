@@ -44,12 +44,14 @@ MAX_RETRIES = 3
 # curl timeouts
 TIMEOUT = 90
 
-# The genetree endpoints resolve much more slowly by symbol than by id, and the
-# cost is neither the payload nor the pruning: the same BRCA2 tree came back in
-# 5.6s via /genetree/id but took 176s via /genetree/member/symbol, and a pruned
-# /genetree/member/id query was the fastest of all at 2.3s. The symbol variants
-# of /genetree/ and /cafe/genetree/ have been measured between 92s and 176s, so
-# give those specific tests a much longer budget than the global one.
+# The comparative genomics endpoints (/genetree/, /cafe/genetree/, /homology/)
+# are far more expensive to resolve by symbol than by id, and the cost is the
+# symbol resolution rather than the payload: an untouched BRCA1 homology query
+# returned 929KB by id in 10.5s, while an untouched TP53 one returned 372KB by
+# symbol in 104s. The symbol variants have been measured between 98s and 176s
+# on a cold cache; a repeat of the same URL is served from Ensembl's cache in
+# ~0.15s, so each test pays this once. Their id-based counterparts stay on the
+# global timeout, having measured between 2s and 14s cold.
 SLOW_ENDPOINT_TIMEOUT = 300
 
 
@@ -797,10 +799,13 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getHomologyBySymbol(self) -> None:
         """test get homology by symbol"""
 
+        # resolving by symbol is slow, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = """curl 'https://rest.ensembl.org/homology/symbol/human/BRCA2?' -H 'Content-type:application/json'"""
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
