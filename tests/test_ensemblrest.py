@@ -44,10 +44,13 @@ MAX_RETRIES = 3
 # curl timeouts
 TIMEOUT = 90
 
-# The /cafe/ endpoints return the whole species tree (~400 taxa, ~100KB) and
-# their latency is driven by server load rather than payload size: the same
-# request has been measured anywhere between 9s and 122s. Give them more room.
-CAFE_TIMEOUT = 180
+# The genetree endpoints resolve much more slowly by symbol than by id, and the
+# cost is neither the payload nor the pruning: the same BRCA2 tree came back in
+# 5.6s via /genetree/id but took 176s via /genetree/member/symbol, and a pruned
+# /genetree/member/id query was the fastest of all at 2.3s. The symbol variants
+# of /genetree/ and /cafe/genetree/ have been measured between 92s and 176s, so
+# give those specific tests a much longer budget than the global one.
+SLOW_ENDPOINT_TIMEOUT = 300
 
 
 def launch(cmd: str, timeout: int = TIMEOUT) -> str:
@@ -591,8 +594,8 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeById(self) -> None:
         """Test genetree by id GET method"""
 
-        # this endpoint is slow and highly variable, see CAFE_TIMEOUT
-        self.EnsEMBL.timeout = CAFE_TIMEOUT
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/id/ENSGT00390000003602?' """
@@ -600,7 +603,7 @@ class EnsemblRestComparative(EnsemblRest):
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd, timeout=CAFE_TIMEOUT)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -615,8 +618,8 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeMemberBySymbol(self) -> None:
         """Test genetree by symbol GET method"""
 
-        # this endpoint is slow and highly variable, see CAFE_TIMEOUT
-        self.EnsEMBL.timeout = CAFE_TIMEOUT
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/symbol/homo_sapiens/"""
@@ -624,7 +627,7 @@ class EnsemblRestComparative(EnsemblRest):
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd, timeout=CAFE_TIMEOUT)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -641,8 +644,8 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getCafeGeneTreeMemberById(self) -> None:
         """Test genetree by member id GET method"""
 
-        # this endpoint is slow and highly variable, see CAFE_TIMEOUT
-        self.EnsEMBL.timeout = CAFE_TIMEOUT
+        # this endpoint is slow and highly variable, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
 
         curl_cmd = (
             """curl 'https://rest.ensembl.org/cafe/genetree/member/id/"""
@@ -650,7 +653,7 @@ class EnsemblRestComparative(EnsemblRest):
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd, timeout=CAFE_TIMEOUT)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # Execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
@@ -693,13 +696,16 @@ class EnsemblRestComparative(EnsemblRest):
     def test_getGeneTreeMemberBySymbol(self) -> None:
         """Test genetree by symbol GET method"""
 
+        # resolving by symbol is slow, see SLOW_ENDPOINT_TIMEOUT
+        self.EnsEMBL.timeout = SLOW_ENDPOINT_TIMEOUT
+
         curl_cmd = (
             """curl 'https://rest.ensembl.org/genetree/member/symbol/homo_sapiens/"""
             """BRCA2?prune_species=cow;prune_taxon=9526' -H 'Content-type:application/json'"""
         )
 
         # execute the curl cmd an get data as a dictionary
-        reference = jsonFromCurl(curl_cmd)
+        reference = jsonFromCurl(curl_cmd, timeout=SLOW_ENDPOINT_TIMEOUT)
 
         # execute EnsemblRest function. Dealing with application/json is simpler,
         # since text/x-phyloxml+xml may change elements order
