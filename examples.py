@@ -250,11 +250,11 @@ print(
         variantType="DUP",
     )
 )
-print(ensRest.getGA4GHFeaturesById(id="ENST00000408937.7"))
+print(ensRest.getGA4GHFeaturesById(id="ENST00000408937.8"))
 ensRest.timeout = 180
 print(
     ensRest.searchGA4GHFeatures(
-        parentId="ENST00000408937.7",
+        parentId="ENST00000408937.8",
         featureSetId="",
         featureTypes=["cds"],
         end=220023,

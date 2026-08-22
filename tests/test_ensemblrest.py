@@ -270,6 +270,39 @@ def normalize_genomes_response(
         return normalize_single(data)
 
 
+def versionedStableId(stable_id: str) -> str:
+    """
+    Resolve an Ensembl stable ID to its currently versioned form.
+
+    Some endpoints (e.g. /ga4gh/features/{id}) only accept an exact versioned
+    identifier and reject stale versions with a 400. Since versions are bumped
+    between Ensembl releases, look the current one up instead of hardcoding it.
+
+    Args:
+        stable_id: An unversioned Ensembl stable ID (e.g. "ENST00000408937")
+
+    Returns:
+        The stable ID with its current version appended (e.g. "ENST00000408937.8")
+
+    Raises:
+        RuntimeError: If the current version could not be resolved
+    """
+
+    curl_cmd = (
+        f"""curl 'https://rest.ensembl.org/lookup/id/{stable_id}' """
+        """-H 'Content-type:application/json'"""
+    )
+
+    data = jsonFromCurl(curl_cmd)
+
+    if not isinstance(data, dict) or "version" not in data:
+        raise RuntimeError(
+            "Could not resolve the current version for %s: %s" % (stable_id, data)
+        )
+
+    return "%s.%s" % (stable_id, data["version"])
+
+
 class EnsemblRest(unittest.TestCase):
     """A class to test EnsemblRest methods"""
 
@@ -2380,13 +2413,19 @@ class EnsemblRestVariationGA4GH(EnsemblRest):
     def test_getGA4GHFeatures(self) -> None:
         """Testing get GA4GH features GET method"""
 
-        curl_cmd = """curl 'https://rest.ensembl.org/ga4gh/features/ENST00000408937.7?' -H 'Content-type:application/json' """
+        # this endpoint needs an exact version, which changes between releases
+        feature_id = versionedStableId("ENST00000408937")
+
+        curl_cmd = (
+            f"""curl 'https://rest.ensembl.org/ga4gh/features/{feature_id}?' """
+            """-H 'Content-type:application/json' """
+        )
 
         # execute the curl cmd an get data as a dictionary
         reference = jsonFromCurl(curl_cmd)
 
         # execute EnsemblRest function
-        test = self.EnsEMBL.getGA4GHFeaturesById(id="ENST00000408937.7")
+        test = self.EnsEMBL.getGA4GHFeaturesById(id=feature_id)
 
         # testing values
         self.assertTrue(compareNested(reference, test))
